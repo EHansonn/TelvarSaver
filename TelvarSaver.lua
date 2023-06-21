@@ -38,7 +38,7 @@ function TVS.onLoad(eventCode, addonName)
     EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_COMBAT_EVENT, TVS.CombatEvent)
 
     -- Creating keybinds
-    ZO_CreateStringId("SI_BINDING_NAME_QUEUEEGTCAMP", "Queue into ravenwatch")
+    ZO_CreateStringId("SI_BINDING_NAME_QUEUETVSCAMP", "Queue into your selected campaign")
     SLASH_COMMANDS["/tvs"] = TVS.queueCamp
     -- SLASH_COMMANDS["/tvsdb"] = TVS.DebugStuff
 
