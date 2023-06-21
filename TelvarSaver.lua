@@ -46,6 +46,7 @@ function TVS.CombatEvent(eventCode, result, isError, abilityName, abilityGraphic
 end
 
 function TVS.AutoQueue(eventCode, result, isError, abilityName, abilityGraphic, abilityActionSlotType, sourceName, sourceType, targetName, targetType, hitValue, powerType, damageType, log,sourceUnitId, targetUnitId, abilityId)
+    -- Triggers when you kill something 
     if result == ACTION_RESULT_DIED or result == ACTION_RESULT_DIED_XP then
         if ((TVS.SV.AutoQueue == false) or (IsInImperialCity() == false)) then
             return
@@ -71,16 +72,20 @@ end
 function TVS.queueCamp()
 
     local queueIC = TVS.CAMPAIGNIDS[TVS.SV.ICCamp]
-    -- Backup incase GH or BR has a queue
-    if (GetCampaignQueuePosition(queueIC) > 0) then
-        queueIC = TVS.CAMPAIGNIDS["Ravenswatch"]
-    end
     local queueCyro = TVS.CAMPAIGNIDS[TVS.SV.CyroCamp]
+
+    -- Backup incase GH or BR has a queue
+    if (GetCampaignQueuePosition(queueCyro) > 0) then
+        queueCyro = TVS.CAMPAIGNIDS["Ravenswatch"]
+    end
+
+    -- GroupQueue Stuff
     local groupQueue = false
     if (IsUnitGrouped('player') == true) and (IsUnitGroupLeader("player") == true) then
         groupQueue = TVS.SV.GroupQueue
     end
 
+  
     if (IsInImperialCity() == true)  then
         if (GetCampaignQueueState(queueCyro) ~= 3)  then return else
             QueueForCampaign(queueCyro,groupQueue)
@@ -93,5 +98,5 @@ function TVS.queueCamp()
     end
 end
 
-
+-- Entry Point
 EVENT_MANAGER:RegisterForEvent(TVS.name,EVENT_ADD_ON_LOADED,TVS.onLoad)
