@@ -7,6 +7,7 @@ TVS.author = "Ehansonn"
 TVS.SavedVariablesName = "TVSVars"
 TVS.SVVersion = "1.0"
 TVS.BackupCamp = "Blackreach"
+
 TVS.CAMPAIGNIDS = {
     ["Ravenswatch"] = 103,
     ["Greyhost"] = 102,
@@ -16,7 +17,7 @@ TVS.CAMPAIGNIDS = {
 }
 
 TVS.defaults = {
-    ICCAMP = "NOCP",
+    ICCamp = "NOCP",
     CyroCamp = "Ravenswatch",
     AutoQueueOut = true,
     TelvarCap = 50000,
@@ -25,20 +26,22 @@ TVS.defaults = {
 }
 
 TVS.SV = {}
-TVS.inAva  =nil
 
 function TVS.onLoad(eventCode, addonName)
     EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_ADD_ON_LOADED)
     TVS.SV = ZO_SavedVars:NewAccountWide(TVS.SavedVariablesName, TVS.SVVersion, nil, TVS.defaults)
 
-
+    -- Creating LAM2 Settings
     TVS.CreateSettingsMenu()
 
+    -- Creating auto queue listener
     EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_COMBAT_EVENT, TVS.CombatEvent)
 
-
+    -- Creating keybinds
     ZO_CreateStringId("SI_BINDING_NAME_QUEUEEGTCAMP", "Queue into ravenwatch")
-    SLASH_COMMANDS["/TVS"] = TVS.queueCamp
+    SLASH_COMMANDS["/tvs"] = TVS.queueCamp
+    -- SLASH_COMMANDS["/tvsdb"] = TVS.DebugStuff
+
 end
 
 function TVS.CombatEvent(eventCode, result, isError, abilityName, abilityGraphic, abilityActionSlotType, sourceName, sourceType, targetName, targetType, hitValue, powerType, damageType, log,sourceUnitId, targetUnitId, abilityId)
@@ -48,7 +51,8 @@ end
 function TVS.AutoQueue(eventCode, result, isError, abilityName, abilityGraphic, abilityActionSlotType, sourceName, sourceType, targetName, targetType, hitValue, powerType, damageType, log,sourceUnitId, targetUnitId, abilityId)
     -- Triggers when you kill something 
     if result == ACTION_RESULT_DIED or result == ACTION_RESULT_DIED_XP then
-        if ((TVS.SV.AutoQueue == false) or (IsInImperialCity() == false)) then
+
+        if ((TVS.SV.AutoQueueOut == false) or (IsInImperialCity() == false)) then
             return
         else
             local currentTelvarOnChar = GetCarriedCurrencyAmount(CURT_TELVAR_STONES)
@@ -85,7 +89,7 @@ function TVS.queueCamp()
         groupQueue = TVS.SV.GroupQueue
     end
 
-  
+
     if (IsInImperialCity() == true)  then
         if (GetCampaignQueueState(queueCyro) ~= 3)  then return else
             QueueForCampaign(queueCyro,groupQueue)
@@ -98,5 +102,15 @@ function TVS.queueCamp()
     end
 end
 
+
+function TVS.DebugStuff()
+    d("ICCamp" .. tostring(TVS.SV.ICCamp))
+    d("CyroCamp" .. tostring(TVS.SV.ICCamp))
+    d("AutoQueueout" .. tostring(TVS.SV.AutoQueueOut))
+    d("TelvarCAp" ..tostring( TVS.SV.TelvarCap))
+    d("GroupQueue" .. tostring(TVS.SV.GroupQueue))
+    d(tostring(IsInImperialCity()))
+    d(tostring((TVS.SV.AutoQueueOut == false)))
+end
 -- Entry Point
 EVENT_MANAGER:RegisterForEvent(TVS.name,EVENT_ADD_ON_LOADED,TVS.onLoad)
