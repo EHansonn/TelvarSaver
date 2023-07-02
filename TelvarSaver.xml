@@ -1,0 +1,91 @@
+<GuiXml>
+    <Controls>
+        <TopLevelControl name="TVSView" alpha="1" mouseEnabled="true" movable="true" hidden="true" clampedToScreen="true">
+            <Dimensions x="275" y="150" />
+            <Anchor point="BOTTOM" relativeTo="GuiRoot" relativePoint="CENTER" />
+            <OnMoveStop>
+                TVS.SaveLocation()
+            </OnMoveStop>
+            <Controls>
+
+                <Backdrop name="$(parent)BG" inherits="ZO_DefaultBackdrop" />
+
+                <Label name="$(parent)WindowTitle" font="ZoFontAnnounceMedium" text="|c8080ffTELVAR|r Saver">
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
+                </Label>
+
+                <Texture name="$(parent)TopDivider" textureFile="/esoui/art/miscellaneous/horizontaldivider.dds" tier="HIGH">
+                    <Dimensions x="300" y="4"/>
+                    <Anchor point="TOP" relativeTo="$(parent)" offsetY="38" />
+                </Texture>
+
+                <Button name="$(parent)ButtonCloseAddon" inherits="ZO_ButtonBehaviorClickSound">
+                    <Dimensions x="40" y="40" />
+                    <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="15" />
+                    <Textures normal="EsoUI/Art/Buttons/closebutton_up.dds"
+                              pressed="EsoUI/Art/Buttons/closebutton_down.dds"
+                              mouseOver="EsoUI/Art/Buttons/closebutton_mouseover.dds"
+                              disabled="EsoUI/Art/Buttons/closebutton_disabled.dds"/>
+                    <OnClicked>
+                        TVS.SetHidden()
+                    </OnClicked>
+                </Button>
+
+
+                <Label name="$(parent)10kButton" font="ZoFontAnnounceMedium" text="|c8080ff10k|r">
+                    <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-20" offsetY="75" />
+                </Label>
+                <Button name="$(parent)ButtonDepo10k" inherits="ZO_ButtonBehaviorClickSound ZO_RadioButton" mouseOverBlendMode="ADD">
+                    <Dimensions x="40" y="40" />
+                    <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-60" offsetY="75"/>
+                    <Textures normal="EsoUI/Art/Tooltips/icon_bag.dds"
+                              pressed="EsoUI/Art/Tooltips/icon_bag.dds"
+                              mouseOver="EsoUI/Art/Tooltips/icon_bag.dds"
+                              disabled="EsoUI/Art/Tooltips/icon_bag.dds"/>
+                    <OnClicked>
+                        TVS.TenThousand()
+                    </OnClicked>
+                </Button>
+
+
+                <Label name="$(parent)1kButton" font="ZoFontAnnounceMedium" text="|c8080ff1k|r">
+                    <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-120" offsetY="75" />
+                </Label>
+                <Button name="$(parent)ButtonDepo1k" inherits="ZO_ButtonBehaviorClickSound ZO_RadioButton" mouseOverBlendMode="ADD">
+                    <Dimensions x="40" y="40" />
+                    <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-140" offsetY="75"/>
+                    <Textures normal="EsoUI/Art/Tooltips/icon_bag.dds"
+                              pressed="EsoUI/Art/Tooltips/icon_bag.dds"
+                              mouseOver="EsoUI/Art/Tooltips/icon_bag.dds"
+                              disabled="EsoUI/Art/Tooltips/icon_bag.dds"/>
+                    <OnClicked>
+                        TVS.OneThousand()
+                    </OnClicked>
+                </Button>
+
+                <Label name="$(parent)0Button" font="ZoFontAnnounceMedium" text="|c8080ff0|r">
+                    <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-200" offsetY="75" />
+                </Label>
+                <Button name="$(parent)ButtonDepo0" inherits="ZO_ButtonBehaviorClickSound ZO_RadioButton" mouseOverBlendMode="ADD" >
+                    <Dimensions x="40" y="40" />
+                    <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-220" offsetY="75"/>
+                    <Textures normal="EsoUI/Art/Tooltips/icon_bag.dds"
+                              pressed="EsoUI/Art/Tooltips/icon_bag.dds"
+                              mouseOver="EsoUI/Art/Tooltips/icon_bag.dds"
+                              disabled="EsoUI/Art/Tooltips/icon_bag.dds"/>
+                    <OnClicked>
+                        TVS.Zero()
+                    </OnClicked>
+                </Button>
+                <Label name="$(parent)CurrentText" font="ZoFontAnnounceMedium" text="Current: |c8080ff0|r">
+                    <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-50" offsetY="120" />
+                </Label>
+
+
+            </Controls>
+
+        </TopLevelControl>
+
+
+    </Controls>
+</GuiXml>
