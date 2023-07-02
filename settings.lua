@@ -68,7 +68,7 @@ function TVS.CreateSettingsMenu()
     table.insert(options, {
         type = "editbox",
         name = "Telvar limit",
-        tooltip = "If you kill a mob and your telvar gained exceeds this int, you will queue out",
+        tooltip = "If you kill a mob or player and your telvar gained exceeds this int, you will queue out",
         textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
         default = TVS.defaults.TelvarCap,
         getFunc = function() return TVS.SV.TelvarCap end,
@@ -89,18 +89,56 @@ function TVS.CreateSettingsMenu()
                     TVS.SV.GroupQueue = value
                 end,
             })
+    table.insert(options,
+            {
+                type = "checkbox",
+                name = "Auto loot key frags",
+                textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+                tooltip = "Determines if the addon will auto loot key frags when opening a loot menu",
+                default = TVS.defaults.AutoLootKeyFrags,
+                getFunc = function() return TVS.SV.AutoLootKeyFrags end,
+                setFunc = function(value)
+                    TVS.SV.AutoLootKeyFrags = value
+                end,
+            })
+    table.insert(options,
+            {
+                type = "checkbox",
+                name = "Auto loot gold in IC",
+                textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+                tooltip = "Determines if the addon will auto loot gold when opening a loot menu",
+                default = TVS.defaults.AutoLootGold,
+                getFunc = function() return TVS.SV.AutoLootGold end,
+                setFunc = function(value)
+                    TVS.SV.AutoLootGold = value
+                end,
+            })
+
+    table.insert(options,
+            {
+                type = "checkbox",
+                name = "Auto loot telvar (from containers) in IC",
+                textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+                tooltip = "Determines if the addon will auto loot telvar when opening a loot menu",
+                default = TVS.defaults.AutoLootTelvar,
+                getFunc = function() return TVS.SV.AutoLootTelvar end,
+                setFunc = function(value)
+                    TVS.SV.AutoLootTelvar = value
+                end,
+            })
+
     table.insert(options, {
         type = "header",
-        name = "Auto Telvar Bank Depo and Withdraws on bank open",
+        name = "Auto Deposits and Withdraws from bank",
 
     })
 
     table.insert(options,
             {
                 type = "checkbox",
-                name = "Auto deposit telvar from bank",
+                name = "Auto deposit telvar to bank",
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-                tooltip = "If your current carried telavr exceeds your desired amount, deposit the excess",
+                tooltip = "If your current carried telvar exceeds your desired amount, deposit the excess",
                 default = TVS.defaults.AutoDepoTelvar,
                 getFunc = function() return TVS.SV.AutoDepoTelvar end,
                 setFunc = function(value)
@@ -113,7 +151,7 @@ function TVS.CreateSettingsMenu()
                 type = "checkbox",
                 name = "Auto withdraw telvar from bank",
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-                tooltip = "If your current carried telavr is below your desired amount, withdraw the amount to reach it",
+                tooltip = "If your current carried telvar is below your desired amount, withdraw the amount to reach it",
                 default = TVS.defaults.AutoWithdrawTelvar,
                 getFunc = function() return TVS.SV.AutoWithdrawTelvar end,
                 setFunc = function(value)
@@ -142,7 +180,7 @@ function TVS.CreateSettingsMenu()
 
     table.insert(options, {
         type = "header",
-        name = "Bank Scene",
+        name = "Bank Menu",
 
     })
 

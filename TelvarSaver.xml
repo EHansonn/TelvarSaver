@@ -1,7 +1,7 @@
 <GuiXml>
     <Controls>
         <TopLevelControl name="TVSView" alpha="1" mouseEnabled="true" movable="true" hidden="true" clampedToScreen="true">
-            <Dimensions x="275" y="150" />
+            <Dimensions x="275" y="200" />
             <Anchor point="BOTTOM" relativeTo="GuiRoot" relativePoint="CENTER" />
             <OnMoveStop>
                 TVS.SaveLocation()
@@ -10,8 +10,8 @@
 
                 <Backdrop name="$(parent)BG" inherits="ZO_DefaultBackdrop" />
 
-                <Label name="$(parent)WindowTitle" font="ZoFontAnnounceMedium" text="|c8080ffTELVAR|r Saver">
-                    <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
+                <Label name="$(parent)WindowTitle" font="ZoFontAnnounceMedium" text="|c8080ffTELVAR|r  Saver">
+                    <Anchor point="TOP" relativeTo="$(parent)" relativePoint="TOP" />
                 </Label>
 
                 <Texture name="$(parent)TopDivider" textureFile="/esoui/art/miscellaneous/horizontaldivider.dds" tier="HIGH">
@@ -77,8 +77,18 @@
                         TVS.Zero()
                     </OnClicked>
                 </Button>
-                <Label name="$(parent)CurrentText" font="ZoFontAnnounceMedium" text="Current: |c8080ff0|r">
-                    <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-50" offsetY="120" />
+                <Label name="$(parent)CurrentText" font="ZoFontAnnounceMedium" text="Current: ">
+                    <Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" offsetX="0" offsetY="0" />
+                </Label>
+                <Label name="$(parent)BankText" font="ZoFontAnnounceMedium" text="Banked: ">
+                    <Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" offsetX="0" offsetY="-30" />
+                </Label>
+
+                <Label name="$(parent)CurrentTextValue" font="ZoFontAnnounceMedium" text="|c8080ff0|r">
+                    <Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" offsetX="90" offsetY="0" />
+                </Label>
+                <Label name="$(parent)BankTextValue" font="ZoFontAnnounceMedium" text="|c8080ff0|r">
+                    <Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" offsetX="90" offsetY="-30" />
                 </Label>
 
 
