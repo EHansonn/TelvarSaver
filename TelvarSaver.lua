@@ -8,7 +8,6 @@ TVS.author = "Ehansonn"
 
 TVS.SavedVariablesName = "TVSVars"
 TVS.SVVersion = "1.4"
-TVS.BackupCamp = "Blackreach"
 
 TVS.CAMPAIGNIDS = {
     ["Ravenswatch"] = 103,
@@ -31,6 +30,10 @@ TVS.alliances = {
 }
 
 TVS.defaults = {
+    AutoAcceptQueue = false,
+    SkipBankDialog = false,
+    BackupCamp = "Ravenswatch",
+    UseBackup = false,
     AutoLootGold = true,
     AutoLootTelvar = true,
     AutoLootKeyFrags = true,
@@ -39,10 +42,10 @@ TVS.defaults = {
     locationx = 275,
     locationy = 150,
     BankScene = true,
-    AutoDepoTelvar = true,
+    AutoDepoTelvar = false,
     AutoWithdrawTelvar = false,
     DesiredTelvarAmount = 0,
-    ICCamp = "NOCP",
+    ICCamp = "CP",
     CyroCamp = "Ravenswatch",
     AutoQueueOut = true,
     TelvarCap = 50000,
@@ -51,6 +54,8 @@ TVS.defaults = {
 }
 
 TVS.SV = {}
+
+
 
 function TVS.onLoad(eventCode, addonName)
     EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_ADD_ON_LOADED)
@@ -73,17 +78,42 @@ function TVS.onLoad(eventCode, addonName)
     -- Creating keybinds
     ZO_CreateStringId("SI_BINDING_NAME_QUEUETVSCAMP", "Queue into your selected campaign")
     SLASH_COMMANDS["/tvs"] = TVS.queueCamp
-    --SLASH_COMMANDS["/tvsdb"] = TVS.DebugStuff
+    SLASH_COMMANDS["/tvsdb"] = TVS.DebugStuff
 
     -- Update Bank Scene UI
     TVS.UpdateAnchors()
 
     -- Auto loot key frags
     EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_LOOT_UPDATED,TVS.OnLootUpdated)
+    EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_CHATTER_BEGIN,TVS.SkipBank)
 
 end
+
+-- -------------------------------------------------------------------------------
+-- Dialog skipper stuff
+-- -------------------------------------------------------------------------------
+
+
+-- Used from lazy writ crafter because I cant figure this crap out because the API documentation is so painful to sift through
+function TVS.SkipBank()
+    if (IsInImperialCity() == false) or (TVS.SV.SkipBankDialog == false) then return end
+
+    if GetInteractionType()~=INTERACTION_BANK and GetInteractionType() == INTERACTION_CONVERSATION then
+        for i= 1, GetChatterOptionCount() do
+            local _, optiontype = GetChatterOption(i)
+            if optiontype == CHATTER_START_BANK then
+                SelectChatterOption(i)
+            end
+        end
+    end
+end
+
+
+-- -------------------------------------------------------------------------------
+-- Autoloot stuff
+-- -------------------------------------------------------------------------------
+
 -- Checking if we looted a key fragment
--- Thanks to smarter auto loot for this
 function TVS.OnLootUpdated()
     if (IsInImperialCity() == false) then return end
     if (TVS.SV.AutoLootGold == true) then LootMoney() end
@@ -96,13 +126,6 @@ function TVS.OnLootUpdated()
     for i = 1, num, 1 do
         local lootId, name, icon, quantity, quality, value, isQuest, isStolen, lootType = GetLootItemInfo(i)
         local link = GetLootItemLink(lootId)
-        local itemType = GetItemLinkItemType(link)
-
-        --d("link: " .. link)
-        --d("itemType: " .. itemType)
-        --d("lootType: " .. lootType)
-        --d("itemId: " .. GetItemLinkItemId(link))
-
         -- Keyfrag id 64487
         if (GetItemLinkItemId(link) == 64487) then
             TVS.LootItem(link,lootId,quantity)
@@ -117,17 +140,19 @@ end
 
 
 
-function TVS.CloseBank()
-    --TVSView:SetAlpha(0)
-    TVSView:SetHidden(true)
-end
+-- -------------------------------------------------------------------------------
+-- Bank stuff
+-- -------------------------------------------------------------------------------
+
 
 --  Bank scene to help you manage your telvar. opens menu and auto depos or withdraws if enabled
 function TVS.DepositTelvar()
+
     if (IsInImperialCity() == false) then
         TVS.HideUi()
         return
     end
+
     --TVSView:SetAlpha(1)
     if (TVS.SV.BankScene == true) then
         TVS.UpdateText()
@@ -155,7 +180,6 @@ function TVS.DepositTelvar()
 
         return
     end
-
 end
 
 -- Buttons in bank scene, withdraws or depos when clicked
@@ -183,6 +207,14 @@ function TVS.TelvarButton(value)
     end
 end
 
+function TVS.CloseBank()
+    --TVSView:SetAlpha(0)
+    TVSView:SetHidden(true)
+end
+
+-- -------------------------------------------------------------------------------
+-- Queue stuff
+-- -------------------------------------------------------------------------------
 
 -- For when you gain telvar and exceed your cap
 function TVS.AutoQueue(eventCode, currencyType, currencyLocation, newAmount, oldAmount, reason, reasonSupplementaryInfo)
@@ -204,20 +236,16 @@ function TVS.AutoQueue(eventCode, currencyType, currencyLocation, newAmount, old
                 groupQueue = TVS.SV.GroupQueue
             end
             QueueForCampaign(queueCyro,groupQueue)
+            if (TVS.SV.UseBackup == true) then TVS.QueueControl() end
+            TVS.AutoQueueControl()
         end
     end
 end
 
 -- For the keybind button press
 function TVS.queueCamp()
-
     local queueIC = TVS.CAMPAIGNIDS[TVS.SV.ICCamp]
     local queueCyro = TVS.CAMPAIGNIDS[TVS.SV.CyroCamp]
-
-    -- Backup incase GH or BR has a queue -- Hopefully this works lol?
-    if (GetCampaignQueuePosition(queueCyro) > 0) then
-        queueCyro = TVS.CAMPAIGNIDS["Ravenswatch"]
-    end
 
     -- GroupQueue Stuff
     local groupQueue = false
@@ -229,20 +257,69 @@ function TVS.queueCamp()
     if (IsInImperialCity() == true)  then
         if (GetCampaignQueueState(queueCyro) ~= 3)  then return else
             QueueForCampaign(queueCyro,groupQueue)
+            if (TVS.SV.UseBackup == true) then TVS.QueueControl() end
+            TVS.AutoQueueControl()
         end
     else if (IsInCyrodiil() == true)  or (IsInAvAZone() == false) then
         if (GetCampaignQueueState(queueIC) ~= 3)  then return else
             QueueForCampaign(queueIC,groupQueue)
+            TVS.AutoQueueControl()
         end
     end
     end
+end
+-- Checking to see if the preferred camp has a queue
+function TVS.QueueControl()
+    EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_POSITION_CHANGED,TVS.CheckQueue)
+    EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_LEFT,TVS.QueueExit)
+end
+-- We left the queue
+function TVS.QueueExit()
+    EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_POSITION_CHANGED)
+    EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_LEFT)
+end
+-- Queueing for backup incase of queue
+function TVS.CheckQueue()
+    local queueCyro = TVS.CAMPAIGNIDS[TVS.SV.CyroCamp]
+
+    if (GetCampaignQueuePosition(queueCyro) > 0) then
+        d("Preferred campaign has a queue, queued for backup")
+        LeaveCampaignQueue(queueCyro)
+        queueCyro = TVS.CAMPAIGNIDS[TVS.SV.BackupCamp]
+        QueueForCampaign(queueCyro,groupQueue)
+    end
+
+end
+
+function TVS.AutoQueueControl()
+    if (TVS.SV.AutoAcceptQueue == false) then
+        EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_STATE_CHANGED)
+        return
+    end
+
+    EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_STATE_CHANGED,TVS.AutoAccept)
+end
+
+
+function TVS.AutoAccept(eventCode, id, isGroup, state)
+    local groupQueue = false
+    if (IsUnitGrouped('player') == true) and (IsUnitGroupLeader("player") == true) then
+        groupQueue = TVS.SV.GroupQueue
+    end
+
+    if (state == CAMPAIGN_QUEUE_REQUEST_STATE_CONFIRMING) then
+        d("Entering campaign...")
+        ConfirmCampaignEntry(id, groupQueue, true)
+    end
+
 end
 
 
 
 
 function TVS.DebugStuff()
-    d("|c8080ff10k|r")
+    d(SCENE_MANAGER:IsShowing("bank"))
+
 end
 -- Entry Point
 EVENT_MANAGER:RegisterForEvent(TVS.name,EVENT_ADD_ON_LOADED,TVS.onLoad)

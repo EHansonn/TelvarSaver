@@ -13,6 +13,11 @@ function TVS.CreateSettingsMenu()
     }
     local options = {}
 
+    table.insert(options, {
+        type = "description",
+        text = "Check your controls for the keybind, its unbound by default",
+
+    })
 
     table.insert(options, {
         type = "header",
@@ -26,7 +31,7 @@ function TVS.CreateSettingsMenu()
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
                 tooltip = "pick ya poison",
                 choices = {'Greyhost','Blackreach','Ravenswatch',"Quagmire","Fields of regret","Ashpit","Evergloam"},
-                default = "Ravenswatch",
+                default = TVS.defaults.CyroCamp,
                 getFunc = function() return TVS.SV.CyroCamp end,
                 setFunc = function(value)
                     TVS.SV.CyroCamp = value
@@ -40,12 +45,55 @@ function TVS.CreateSettingsMenu()
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
                 tooltip = "nocp or cp ic",
                 choices = {'NOCP','CP',"Dragonfire","Legion Zero"},
-                default = "NOCP",
+                default = TVS.defaults.ICCamp,
                 getFunc = function() return TVS.SV.ICCamp end,
                 setFunc = function(value)
                     TVS.SV.ICCamp = value
                 end,
             })
+
+    table.insert(options,
+            {
+                type = "checkbox",
+                name = "Use backup campaign if theres a queue?",
+                textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+                tooltip = "If your preferred camp has a queue it will unqueue you and requeue you for the backup",
+                default = TVS.defaults.UseBackup,
+                getFunc = function() return TVS.SV.UseBackup end,
+                setFunc = function(value)
+                    TVS.SV.UseBackup = value
+                end,
+            })
+
+    table.insert(options,
+            {
+                type = "dropdown",
+                name = "Backup Campaign",
+                textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+                tooltip = "Campaign to use if your preferred cyro campaign has a queue",
+                choices = {'Greyhost','Blackreach','Ravenswatch',"Quagmire","Fields of regret","Ashpit","Evergloam"},
+                default = "Ravenswatch",
+                getFunc = function() return TVS.SV.BackupCamp end,
+                setFunc = function(value)
+                    TVS.SV.BackupCamp = value
+                end,
+            })
+
+    table.insert(options,
+            {
+                type = "checkbox",
+                name = "Auto accept queue?",
+                textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+                tooltip = "Do you want the queue to auto accept?",
+                default = TVS.defaults.AutoAcceptQueue,
+                getFunc = function() return TVS.SV.AutoAcceptQueue end,
+                setFunc = function(value)
+                    EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_STATE_CHANGED)
+                    TVS.SV.AutoAcceptQueue = value
+                end,
+            })
+
+
     table.insert(options, {
         type = "header",
         name = "Time/Life Savers",
@@ -127,9 +175,22 @@ function TVS.CreateSettingsMenu()
                 end,
             })
 
+    table.insert(options,
+            {
+                type = "checkbox",
+                name = "Skip bank dialog in IC",
+                textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+                tooltip = "Will skip the bank dialog if youre in IC.",
+                default = TVS.defaults.SkipBankDialog,
+                getFunc = function() return TVS.SV.SkipBankDialog end,
+                setFunc = function(value)
+                    TVS.SV.SkipBankDialog = value
+                end,
+            })
+
     table.insert(options, {
         type = "header",
-        name = "Auto Deposits and Withdraws from bank",
+        name = "Auto Deposits and Withdraw from bank",
 
     })
 
@@ -236,11 +297,7 @@ function TVS.CreateSettingsMenu()
     })
 
 
-    table.insert(options, {
-        type = "description",
-        text = "IMPORTANT!!!! Check your controls for the keybind, its unbound by default",
 
-    })
 
     -- Registering Panel and Options
     local controlPanel = LAM:RegisterAddonPanel(panelName,panelData)
