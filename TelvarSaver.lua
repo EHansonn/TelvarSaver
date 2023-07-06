@@ -238,7 +238,6 @@ function TVS.AutoQueue(eventCode, currencyType, currencyLocation, newAmount, old
             if (IsUnitGrouped('player') == true) and (IsUnitGroupLeader("player") == true) then
                 groupQueue = TVS.SV.GroupQueue
             end
-            d("Made it to queue")
             QueueForCampaign(queueCyro,groupQueue)
             if (TVS.SV.UseBackup == true) then TVS.QueueControl() end
             TVS.AutoQueueControl()
@@ -285,14 +284,14 @@ end
 -- Queueing for backup incase of queue
 function TVS.CheckQueue()
     local queueCyro = TVS.CAMPAIGNIDS[TVS.SV.CyroCamp]
-
     if (GetCampaignQueuePosition(queueCyro) > 0) then
-        d("Preferred campaign has a queue, queued for backup")
         local newqueueCyro = TVS.CAMPAIGNIDS[TVS.SV.BackupCamp]
         if (newqueueCyro ~= queueCyro) then
             LeaveCampaignQueue(queueCyro)
+            QueueForCampaign(newqueueCyro,groupQueue)
+            d("Preferred campaign has a queue, queued for backup")
         end
-        QueueForCampaign(newqueueCyro,groupQueue)
+
         -- We dont care about these any more
         EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_POSITION_CHANGED)
         EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_LEFT)
@@ -342,7 +341,7 @@ function TVS.InSafeZone()
     if (zoneId ~= 643) then return false end
     for i,zone in ipairs(TVS.SafeZones) do
         if (px >= zone.lowx) and (py >= zone.lowy) and (px <= zone.highx) and (py <= zone.highy)  then
-            d("Telvar Cap reached but player in base")
+            --d("Telvar Cap reached but player in base")
             return true
         end
     end
