@@ -1,13 +1,13 @@
 TVS = {}
 
 TVS.name = "Telvar Saver"
-TVS.version = "1.4"
+TVS.version = "1.4.2"
 TVS.author = "Ehansonn"
 
 
 
 TVS.SavedVariablesName = "TVSVars"
-TVS.SVVersion = "1.4"
+TVS.SVVersion = "1.4.2"
 
 TVS.CAMPAIGNIDS = {
     ["Ravenswatch"] = 103,
@@ -218,14 +218,17 @@ end
 
 -- For when you gain telvar and exceed your cap
 function TVS.AutoQueue(eventCode, currencyType, currencyLocation, newAmount, oldAmount, reason, reasonSupplementaryInfo)
+    if (TVS.SV.AutoQueueOut == false) then return end
     if not IsInImperialCity() then return end
     if currencyType ~= CURT_TELVAR_STONES then return end
     if currencyLocation ~= CURRENCY_LOCATION_CHARACTER then return end
     if reason ~= CURRENCY_CHANGE_REASON_PVP_KILL_TRANSFER and reason ~= CURRENCY_CHANGE_REASON_LOOT then return end
-    if (TVS.SV.AutoQueueOut == false) then return end
 
     local currentTelvarOnChar = GetCarriedCurrencyAmount(CURT_TELVAR_STONES)
     if (currentTelvarOnChar >= TVS.SV.TelvarCap) then
+        local playerInBase = TVS.InSafeZone()
+        if (playerInBase == true) then return end
+
         local queueCyro = TVS.CAMPAIGNIDS[TVS.SV.CyroCamp]
         -- d(GetCampaignQueueState(queueCyro))
         if (GetCampaignQueueState(queueCyro) ~= 3) then return else
@@ -235,6 +238,7 @@ function TVS.AutoQueue(eventCode, currencyType, currencyLocation, newAmount, old
             if (IsUnitGrouped('player') == true) and (IsUnitGroupLeader("player") == true) then
                 groupQueue = TVS.SV.GroupQueue
             end
+            d("Made it to queue")
             QueueForCampaign(queueCyro,groupQueue)
             if (TVS.SV.UseBackup == true) then TVS.QueueControl() end
             TVS.AutoQueueControl()
@@ -284,9 +288,14 @@ function TVS.CheckQueue()
 
     if (GetCampaignQueuePosition(queueCyro) > 0) then
         d("Preferred campaign has a queue, queued for backup")
-        LeaveCampaignQueue(queueCyro)
-        queueCyro = TVS.CAMPAIGNIDS[TVS.SV.BackupCamp]
-        QueueForCampaign(queueCyro,groupQueue)
+        local newqueueCyro = TVS.CAMPAIGNIDS[TVS.SV.BackupCamp]
+        if (newqueueCyro ~= queueCyro) then
+            LeaveCampaignQueue(queueCyro)
+        end
+        QueueForCampaign(newqueueCyro,groupQueue)
+        -- We dont care about these any more
+        EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_POSITION_CHANGED)
+        EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_LEFT)
     end
 
 end
@@ -314,11 +323,39 @@ function TVS.AutoAccept(eventCode, id, isGroup, state)
 
 end
 
+-- a bunch of squares that accurately contains the IC safe zones
+-- x increases to the right on the map
+-- y increases going down on the map
+TVS.SafeZones = {
+    [1] = {lowx = 263010, lowy=177811, highx=277158, highy=183151}, --right side of AD base
+    [2] = {lowx = 259061, lowy=173749, highx=263010, highy=183151}, -- left side of AD base
+    [3] = {lowx = 162000, lowy=17400, highx=181900, highy=25000}, -- top of EP
+    [4] = {lowx = 179500 , lowy=25000, highx=181900, highy= 29500}, -- bottom of EP
+    [5] = {lowx = 1400 , lowy=155800, highx=5420, highy= 171000}, -- middle of DC
+    [6] = {lowx = 1400 , lowy=168700, highx=11000, highy=172000 }, -- bottom of DC
+    [7] = {lowx = 1400 , lowy=153580, highx=6700, highy=159320 }, -- top of DC
+}
 
+-- Checking if the player is currently within any of the safe zones since midyear boxes give the CURRENCY_CHANGE_REASON_LOOT code
+function TVS.InSafeZone()
+    local zoneId, px, pz, py = GetUnitRawWorldPosition("player")
+    if (zoneId ~= 643) then return false end
+    for i,zone in ipairs(TVS.SafeZones) do
+        if (px >= zone.lowx) and (py >= zone.lowy) and (px <= zone.highx) and (py <= zone.highy)  then
+            d("Telvar Cap reached but player in base")
+            return true
+        end
+    end
+    return false
 
+end
 
 function TVS.DebugStuff()
-    d(SCENE_MANAGER:IsShowing("bank"))
+    local zoneId, px, pz, py = GetUnitRawWorldPosition("player")
+    d(zoneId)
+    d("x: " ..px)
+    d("y: " ..py)
+    d("in base: " .. tostring(TVS.InSafeZone()))
 
 end
 -- Entry Point

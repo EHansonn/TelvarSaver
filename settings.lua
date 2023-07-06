@@ -121,7 +121,9 @@ function TVS.CreateSettingsMenu()
         default = TVS.defaults.TelvarCap,
         getFunc = function() return TVS.SV.TelvarCap end,
         setFunc = function(text)
-            TVS.SV.TelvarCap = tonumber(text)
+            local value = tonumber(text)
+            if (value <= 0) then value = 1 end
+            TVS.SV.TelvarCap = value
         end,
     })
 
