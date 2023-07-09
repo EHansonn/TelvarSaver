@@ -352,7 +352,7 @@ function TVS.AutoKickOfflinePlayers(campaignID)
             QueueForCampaign(campaignID,newGroupQueue)
             if (TVS.SV.UseBackup == true) then TVS.QueueControl() end
             TVS.AutoQueueControl()
-            TVS.dtvs("Queued for cyro campaign [" .. TVS.SV.CyroCamp .. "]")
+            TVS.dtvs("Removed offline players and queued for campaign")
         end,200)
     end
     return count
