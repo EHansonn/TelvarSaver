@@ -125,7 +125,7 @@ function TVS.CreateSettingsMenu()
                             TVS.SV.ICCamp = TVS.defaults.ICCamp
                             TVS.SV.CyroCamp = TVS.defaults.CyroCamp
                             ReloadUI()
-                        end, 500)
+                        end, 200)
                     end)
                 end,
             })
@@ -340,7 +340,7 @@ function TVS.CreateSettingsMenu()
         type = "button",
         name = "reset ALL SETTINGS to defaults",
         func = function ()
-            LAM.util.ShowConfirmationDialog("Settings reset tp defai;ts","Requires a UI reload", function()
+            LAM.util.ShowConfirmationDialog("Reset all settings to defaults?","Requires a UI reload", function()
                 zo_callLater(function()
                     -- lol
                     TVS.SV.locationy = TVS.defaults.locationy
