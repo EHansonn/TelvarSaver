@@ -18,6 +18,18 @@ function TVS.CreateSettingsMenu()
         text = "Check your controls for the keybind, its unbound by default",
 
     })
+    table.insert(options,
+            {
+                type = "checkbox",
+                name = "Chat Notifications",
+                textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+                tooltip = "",
+                default = TVS.defaults.notifications,
+                getFunc = function() return TVS.SV.notifications end,
+                setFunc = function(value)
+                    TVS.SV.notifications = value
+                end,
+            })
 
     table.insert(options, {
         type = "header",
@@ -40,7 +52,6 @@ function TVS.CreateSettingsMenu()
                     TVS.SV.CyroCamp = value
                 end,
             })
-
     local icChoices = {'NOCP','CP',"Last visited"}
     if (TVS.SV.midyear == true) then icChoices = {'NOCP','CP',"Last visited","Dragonfire","Legion Zero"} end
 
@@ -49,7 +60,7 @@ function TVS.CreateSettingsMenu()
                 type = "dropdown",
                 name = "Preferred IC Campaign",
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-                tooltip = "nocp or cp ic",
+                tooltip = "NOCP or CP IC. Last visited will queue you into the campaign you visited last",
                 choices = icChoices,
                 default = TVS.defaults.ICCamp,
                 getFunc = function() return TVS.SV.ICCamp end,
@@ -61,9 +72,9 @@ function TVS.CreateSettingsMenu()
     table.insert(options,
             {
                 type = "checkbox",
-                name = "Use backup campaign if theres a queue?",
+                name = "Use backup campaign",
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-                tooltip = "If your preferred camp has a queue it will unqueue you and requeue you for the backup",
+                tooltip = "If your preferred camp has a queue (ie greyhost during prime time) it will unqueue you and requeue you for the backup",
                 default = TVS.defaults.UseBackup,
                 getFunc = function() return TVS.SV.UseBackup end,
                 setFunc = function(value)
@@ -88,9 +99,9 @@ function TVS.CreateSettingsMenu()
     table.insert(options,
             {
                 type = "checkbox",
-                name = "Auto accept queue?",
+                name = "Auto accept queue",
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-                tooltip = "Do you want the queue to auto accept?",
+                tooltip = "Do you want the queue to auto accept? Unneeded if you already have kill counter's auto accept enabled.",
                 default = TVS.defaults.AutoAcceptQueue,
                 getFunc = function() return TVS.SV.AutoAcceptQueue end,
                 setFunc = function(value)
@@ -102,7 +113,7 @@ function TVS.CreateSettingsMenu()
     table.insert(options,
             {
                 type = "checkbox",
-                name = "Midyear Mayhem active?",
+                name = "Midyear Mayhem campaigns",
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
                 tooltip = "Check if you want to show midyear campaigns. Requires you /reload after",
                 default = TVS.defaults.midyear,
@@ -130,7 +141,7 @@ function TVS.CreateSettingsMenu()
                 type = "checkbox",
                 name = "Auto leave when telvar limit reached",
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-                tooltip = "Only triggers if you kill something, gain telvar, and the limit exceeds the set amount below. Wont trigger if you withdraw from your bank or something so be careful",
+                tooltip = "Only triggers if you gain telvar, and the limit exceeds the set amount below. Wont trigger if you withdraw from your bank or something so be careful",
                 default = TVS.defaults.AutoQueueOut,
                 getFunc = function() return TVS.SV.AutoQueueOut end,
                 setFunc = function(value)
@@ -155,13 +166,26 @@ function TVS.CreateSettingsMenu()
     table.insert(options,
             {
                 type = "checkbox",
-                name = "Group queue when queueing ",
+                name = "Group queue ",
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
                 tooltip = "Determines if you group queue if youre the group leader when you hit the keybind or reach your cap",
                 default = TVS.defaults.GroupQueue,
                 getFunc = function() return TVS.SV.GroupQueue end,
                 setFunc = function(value)
                     TVS.SV.GroupQueue = value
+                end,
+            })
+
+    table.insert(options,
+            {
+                type = "checkbox",
+                name = "Auto kick offline (IMPORTANT) ",
+                textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+                tooltip = "To group queue you need to have no offline members in your group. By having this disabled, you will not be able to queue if you have an offline person in your group",
+                default = TVS.defaults.AutoKickOffline,
+                getFunc = function() return TVS.SV.AutoKickOffline end,
+                setFunc = function(value)
+                    TVS.SV.AutoKickOffline = value
                 end,
             })
     table.insert(options,
@@ -224,7 +248,7 @@ function TVS.CreateSettingsMenu()
     table.insert(options,
             {
                 type = "checkbox",
-                name = "Auto deposit telvar to bank",
+                name = "Auto deposit telvar into bank",
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
                 tooltip = "If your current carried telvar exceeds your desired amount, deposit the excess",
                 default = TVS.defaults.AutoDepoTelvar,
@@ -250,7 +274,7 @@ function TVS.CreateSettingsMenu()
     table.insert(options, {
         type = "editbox",
         name = "Desired carried Telvar ",
-        tooltip = "The amount you want to carry",
+        tooltip = "The amount you want to carry (for auto depos and withdraws)",
         textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
         default = TVS.defaults.DesiredTelvarAmount,
         getFunc = function() return TVS.SV.DesiredTelvarAmount end,
@@ -289,7 +313,7 @@ function TVS.CreateSettingsMenu()
     table.insert(options,
             {
                 type = "checkbox",
-                name = "Dragable?",
+                name = "Dragable",
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
                 tooltip = "",
                 default = TVS.defaults.dragable,
@@ -300,18 +324,7 @@ function TVS.CreateSettingsMenu()
                 end,
             })
 
-    table.insert(options,
-            {
-                type = "checkbox",
-                name = "Chat Notifications",
-                textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-                tooltip = "",
-                default = TVS.defaults.notifications,
-                getFunc = function() return TVS.SV.notifications end,
-                setFunc = function(value)
-                    TVS.SV.notifications = value
-                end,
-            })
+
     table.insert(options, {
         type = "button",
         name = "reset position to defaults",
@@ -323,6 +336,45 @@ function TVS.CreateSettingsMenu()
         end
     })
 
+    table.insert(options, {
+        type = "button",
+        name = "reset ALL SETTINGS to defaults",
+        func = function ()
+            LAM.util.ShowConfirmationDialog("Settings reset tp defai;ts","Requires a UI reload", function()
+                zo_callLater(function()
+                    -- lol
+                    TVS.SV.locationy = TVS.defaults.locationy
+                    TVS.SV.locationx = TVS.defaults.locationx
+                    TVS.UpdateAnchors()
+
+                    TVS.SV.AutoKickOffline = TVS.defaults.AutoKickOffline
+                    TVS.SV.midyear = TVS.defaults.midyear
+                    TVS.SV.LastICCamp = TVS.defaults.LastICCamp
+                    TVS.SV.AutoAcceptQueue = TVS.defaults.AutoAcceptQueue
+                    TVS.SV.SkipBankDialog = TVS.defaults.SkipBankDialog
+                    TVS.SV.BackupCamp =  TVS.defaults.BackupCamp
+                    TVS.SV.UseBackup = TVS.defaults.UseBackup
+                    TVS.SV.AutoLootGold = TVS.defaults.AutoLootGold
+                    TVS.SV.AutoLootTelvar = TVS.defaults.AutoLootTelvar
+                    TVS.SV.AutoLootKeyFrags = TVS.defaults.AutoLootKeyFrags
+                    TVS.SV.notifications = TVS.defaults.notifications
+                    TVS.SV.dragable = TVS.defaults.dragable
+                    TVS.SV.locationx = TVS.defaults.locationx
+                    TVS.SV.locationy = TVS.defaults.locationy
+                    TVS.SV.BankScene = TVS.defaults.BankScene
+                    TVS.SV.AutoDepoTelvar = TVS.defaults.AutoDepoTelvar
+                    TVS.SV.AutoWithdrawTelvar = TVS.defaults.AutoWithdrawTelvar
+                    TVS.SV.DesiredTelvarAmount = TVS.defaults.DesiredTelvarAmount
+                    TVS.SV.ICCamp = TVS.defaults.ICCamp
+                    TVS.SV.CyroCamp = CyroCamp
+                    TVS.SV.AutoQueueOut = TVS.defaults.AutoQueueOut
+                    TVS.SV.TelvarCap = TVS.defaults.TelvarCap
+                    TVS.SV.GroupQueue = TVS.defaults.GroupQueue
+                    ReloadUI()
+                end, 100)
+            end)
+        end
+    })
 
 
 

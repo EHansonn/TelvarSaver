@@ -1,11 +1,11 @@
 TVS = {}
 
 TVS.name = "Telvar Saver"
-TVS.version = "1.4.3"
+TVS.version = "1.4.4"
 TVS.author = "Ehansonn"
 
 TVS.SavedVariablesName = "TVSVars"
-TVS.SVVersion = "1.4.3"
+TVS.SVVersion = "1.4.4"
 
 TVS.CAMPAIGNIDS = {
     ["Ravenswatch"] = 103,
@@ -23,6 +23,7 @@ TVS.CAMPAIGNIDS = {
 }
 
 TVS.defaults = {
+    AutoKickOffline = true,
     midyear = false,
     LastICCamp = 95,
     AutoAcceptQueue = false,
@@ -45,7 +46,6 @@ TVS.defaults = {
     AutoQueueOut = true,
     TelvarCap = 50000,
     GroupQueue = false,
-
 }
 
 -- Telvar Icon
@@ -209,6 +209,7 @@ function TVS.AutoQueue(eventCode, currencyType, currencyLocation, newAmount, old
             TVS.dtvs("MAX TELVAR REACHED, queued for campaign [" .. TVS.SV.CyroCamp .. "]")
             TVS.UpdateLastLocation()
             local groupQueue = TVS.GetGroupQueue()
+            if (groupQueue) then if (TVS.AutoKickOfflinePlayers(queueCyro) ~= 0) then return end end
 
             QueueForCampaign(queueCyro,groupQueue)
             if (TVS.SV.UseBackup == true) then TVS.QueueControl() end
@@ -224,6 +225,8 @@ function TVS.queueCamp()
     if (TVS.SV.ICCamp == "Last visited") then queueIC = TVS.SV.LastICCamp end
 
     local groupQueue = TVS.GetGroupQueue()
+    if (groupQueue) then if (TVS.AutoKickOfflinePlayers(queueCyro) ~= 0) then return end end
+
 
     if (IsInImperialCity() == true)  then
         if (GetCampaignQueueState(queueCyro) ~= 3)  then return else
@@ -323,6 +326,34 @@ function TVS.GetGroupQueue()
     return groupQueue
 end
 
+-- If the player is in a group, is group leader, and has an offline member in the group,
+-- Kick them and then queue again after x ms
+function TVS.AutoKickOfflinePlayers(campaignID)
+    if (TVS.SV.AutoKickOffline == false) or (TVS.GetGroupQueue() == false) then return 0 end
+    local size = GetGroupSize()
+    local count = 0
+    if size < 1 then return count end
+
+    for player = 1, size do
+        if not (IsUnitOnline(GetGroupUnitTagByIndex(player))) then
+            GroupKick(GetGroupUnitTagByIndex(player))
+            count = count + 1
+            TVS.dtvs("Kicking " .. GetUnitName(GetGroupUnitTagByIndex(player)))
+        end
+    end
+
+    if (count > 0) then
+        zo_callLater(function()
+            local newGroupQueue = TVS.GetGroupQueue()
+            QueueForCampaign(campaignID,newGroupQueue)
+            if (TVS.SV.UseBackup == true) then TVS.QueueControl() end
+            TVS.AutoQueueControl()
+            TVS.dtvs("Queued for cyro campaign [" .. TVS.SV.CyroCamp .. "]")
+        end,200)
+    end
+    return count
+end
+
 -- -------------------------------------------------------------------------------
 -- misc stuff
 -- -------------------------------------------------------------------------------
@@ -342,7 +373,7 @@ function TVS.dtvs(value)
 end
 
 function TVS.DebugStuff()
-    d(TVS.InSafeZone())
+
 end
 
 -- Entry Point
