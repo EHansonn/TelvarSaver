@@ -43,7 +43,7 @@
                               mouseOver="EsoUI/Art/Tooltips/icon_bag.dds"
                               disabled="EsoUI/Art/Tooltips/icon_bag.dds"/>
                     <OnClicked>
-                        TVS.TenThousand()
+                        TVS.TelvarButton(10000)
                     </OnClicked>
                 </Button>
 
@@ -59,7 +59,7 @@
                               mouseOver="EsoUI/Art/Tooltips/icon_bag.dds"
                               disabled="EsoUI/Art/Tooltips/icon_bag.dds"/>
                     <OnClicked>
-                        TVS.OneThousand()
+                        TVS.TelvarButton(1000)
                     </OnClicked>
                 </Button>
 
@@ -74,21 +74,21 @@
                               mouseOver="EsoUI/Art/Tooltips/icon_bag.dds"
                               disabled="EsoUI/Art/Tooltips/icon_bag.dds"/>
                     <OnClicked>
-                        TVS.Zero()
+                        TVS.TelvarButton(0)
                     </OnClicked>
                 </Button>
-                <Label name="$(parent)CurrentText" font="ZoFontAnnounceMedium" text="Current: ">
+                <Label name="$(parent)CurrentText" font="ZoFontAnnounceMedium" text="Current">
                     <Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" offsetX="0" offsetY="0" />
                 </Label>
-                <Label name="$(parent)BankText" font="ZoFontAnnounceMedium" text="Banked: ">
+                <Label name="$(parent)BankText" font="ZoFontAnnounceMedium" text="Banked">
                     <Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" offsetX="0" offsetY="-30" />
                 </Label>
 
                 <Label name="$(parent)CurrentTextValue" font="ZoFontAnnounceMedium" text="|c8080ff0|r">
-                    <Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" offsetX="90" offsetY="0" />
+                    <Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" offsetX="78" offsetY="0" />
                 </Label>
                 <Label name="$(parent)BankTextValue" font="ZoFontAnnounceMedium" text="|c8080ff0|r">
-                    <Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" offsetX="90" offsetY="-30" />
+                    <Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" offsetX="78" offsetY="-30" />
                 </Label>
 
 

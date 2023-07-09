@@ -24,13 +24,16 @@ function TVS.CreateSettingsMenu()
         name = "Campaign Options",
 
     })
+    local cyroChoices = {'Greyhost','Blackreach','Ravenswatch'}
+    if (TVS.SV.midyear == true) then cyroChoices ={'Greyhost','Blackreach','Ravenswatch',"Quagmire","Fields of regret","Ashpit","Evergloam"} end
+
     table.insert(options,
             {
                 type = "dropdown",
                 name = "Preferred Cyro Campaign",
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
                 tooltip = "pick ya poison",
-                choices = {'Greyhost','Blackreach','Ravenswatch',"Quagmire","Fields of regret","Ashpit","Evergloam"},
+                choices = cyroChoices,
                 default = TVS.defaults.CyroCamp,
                 getFunc = function() return TVS.SV.CyroCamp end,
                 setFunc = function(value)
@@ -38,13 +41,16 @@ function TVS.CreateSettingsMenu()
                 end,
             })
 
+    local icChoices = {'NOCP','CP',"Last visited"}
+    if (TVS.SV.midyear == true) then icChoices = {'NOCP','CP',"Last visited","Dragonfire","Legion Zero"} end
+
     table.insert(options,
             {
                 type = "dropdown",
                 name = "Preferred IC Campaign",
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
                 tooltip = "nocp or cp ic",
-                choices = {'NOCP','CP',"Dragonfire","Legion Zero"},
+                choices = icChoices,
                 default = TVS.defaults.ICCamp,
                 getFunc = function() return TVS.SV.ICCamp end,
                 setFunc = function(value)
@@ -93,6 +99,25 @@ function TVS.CreateSettingsMenu()
                 end,
             })
 
+    table.insert(options,
+            {
+                type = "checkbox",
+                name = "Midyear Mayhem active?",
+                textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+                tooltip = "Check if you want to show midyear campaigns. Requires you /reload after",
+                default = TVS.defaults.midyear,
+                getFunc = function() return TVS.SV.midyear end,
+                setFunc = function(value)
+                    LAM.util.ShowConfirmationDialog("Enable midyear campaigns?","You must reload your UI to see midyear campaigns. It will reset your selected campaigns", function()
+                        zo_callLater(function()
+                            TVS.SV.midyear = value
+                            TVS.SV.ICCamp = TVS.defaults.ICCamp
+                            TVS.SV.CyroCamp = TVS.defaults.CyroCamp
+                            ReloadUI()
+                        end, 500)
+                    end)
+                end,
+            })
 
     table.insert(options, {
         type = "header",

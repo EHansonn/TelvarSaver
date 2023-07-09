@@ -1,13 +1,11 @@
 TVS = {}
 
 TVS.name = "Telvar Saver"
-TVS.version = "1.4.2"
+TVS.version = "1.4.3"
 TVS.author = "Ehansonn"
 
-
-
 TVS.SavedVariablesName = "TVSVars"
-TVS.SVVersion = "1.4.2"
+TVS.SVVersion = "1.4.3"
 
 TVS.CAMPAIGNIDS = {
     ["Ravenswatch"] = 103,
@@ -20,22 +18,19 @@ TVS.CAMPAIGNIDS = {
     ["Quagmire"] = 111,
     ["Fields of regret"] = 112,
     ["Ashpit"] = 106,
-    ["Evergloam"] = 105
-}
-
-TVS.alliances = {
-    ['AD'] = 1,
-    ['EP'] = 2,
-    ['DC'] = 3
+    ["Evergloam"] = 105,
+    ["Last visited"] = 95,
 }
 
 TVS.defaults = {
+    midyear = false,
+    LastICCamp = 95,
     AutoAcceptQueue = false,
     SkipBankDialog = false,
     BackupCamp = "Ravenswatch",
     UseBackup = false,
-    AutoLootGold = true,
-    AutoLootTelvar = true,
+    AutoLootGold = false,
+    AutoLootTelvar = false,
     AutoLootKeyFrags = true,
     notifications = true,
     dragable = true,
@@ -49,13 +44,14 @@ TVS.defaults = {
     CyroCamp = "Ravenswatch",
     AutoQueueOut = true,
     TelvarCap = 50000,
-    GroupQueue = true,
+    GroupQueue = false,
 
 }
 
+-- Telvar Icon
+TVS.TELVAR_CHAT_ICON = (zo_iconTextFormat("EsoUI/Art/currency/currency_telvar_32.dds",18,18))
+
 TVS.SV = {}
-
-
 
 function TVS.onLoad(eventCode, addonName)
     EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_ADD_ON_LOADED)
@@ -70,10 +66,9 @@ function TVS.onLoad(eventCode, addonName)
 
     -- Bank Scene
     EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_OPEN_BANK,TVS.DepositTelvar)
-    EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_CLOSE_BANK,TVS.CloseBank)
+    EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_CLOSE_BANK,TVS.HideUi)
     EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_BANKED_CURRENCY_UPDATE,TVS.UpdateText)
     EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_TELVAR_STONE_UPDATE,TVS.UpdateText)
-    --EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_CURRENCY_UPDATE,TVS.UpdateText)
 
     -- Creating keybinds
     ZO_CreateStringId("SI_BINDING_NAME_QUEUETVSCAMP", "Queue into your selected campaign")
@@ -82,19 +77,25 @@ function TVS.onLoad(eventCode, addonName)
 
     -- Update Bank Scene UI
     TVS.UpdateAnchors()
+    TVS.UpdateText()
 
     -- Auto loot key frags
     EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_LOOT_UPDATED,TVS.OnLootUpdated)
+
+    -- Bank chatter dialog skip
     EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_CHATTER_BEGIN,TVS.SkipBank)
 
-end
+
+    TVS.UpdateLastLocation()
+    --Setting the last IC camp the player visited
+    EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_PLAYER_ACTIVATED,TVS.UpdateLastLocation)
+    end
 
 -- -------------------------------------------------------------------------------
 -- Dialog skipper stuff
 -- -------------------------------------------------------------------------------
 
-
--- Used from lazy writ crafter because I cant figure this crap out because the API documentation is so painful to sift through
+-- Used from lazy writ crafter
 function TVS.SkipBank()
     if (IsInImperialCity() == false) or (TVS.SV.SkipBankDialog == false) then return end
 
@@ -113,16 +114,14 @@ end
 -- Autoloot stuff
 -- -------------------------------------------------------------------------------
 
--- Checking if we looted a key fragment
+-- Checking if we looted a key fragment. Thanks smarter auto loot
 function TVS.OnLootUpdated()
     if (IsInImperialCity() == false) then return end
     if (TVS.SV.AutoLootGold == true) then LootMoney() end
     if (TVS.SV.AutoLootTelvar == true) then LootCurrency(CURT_TELVAR_STONES) end
-
     if (TVS.SV.AutoLootKeyFrags == false) then return end
 
     local num = GetNumLootItems()
-    --d("Loot items number : "..num)
     for i = 1, num, 1 do
         local lootId, name, icon, quantity, quality, value, isQuest, isStolen, lootType = GetLootItemInfo(i)
         local link = GetLootItemLink(lootId)
@@ -135,7 +134,6 @@ end
 -- Looting the key frag
 function TVS.LootItem(link, lootId, quantity)
     LootItemById(lootId)
-    --d("Looted ".. tostring(quantity) .. " ".. link)
 end
 
 
@@ -144,20 +142,10 @@ end
 -- Bank stuff
 -- -------------------------------------------------------------------------------
 
-
 --  Bank scene to help you manage your telvar. opens menu and auto depos or withdraws if enabled
 function TVS.DepositTelvar()
-
-    if (IsInImperialCity() == false) then
-        TVS.HideUi()
-        return
-    end
-
-    --TVSView:SetAlpha(1)
-    if (TVS.SV.BankScene == true) then
-        TVS.UpdateText()
-        TVSView:SetHidden(false)
-    end
+    if (IsInImperialCity() == false) then TVS.HideUi() return end
+    if (TVS.SV.BankScene == true) then TVS.ShowUi() end
 
     local currentTelvarOnChar = GetCarriedCurrencyAmount(CURT_TELVAR_STONES)
     local currentTelvarStonesInBank = GetBankedCurrencyAmount(CURT_TELVAR_STONES)
@@ -165,19 +153,15 @@ function TVS.DepositTelvar()
     if (currentTelvarOnChar > TVS.SV.DesiredTelvarAmount) and (TVS.SV.AutoDepoTelvar == true)then
         local amount = currentTelvarOnChar - TVS.SV.DesiredTelvarAmount
         DepositCurrencyIntoBank(CURT_TELVAR_STONES, amount)
-        TVS.UpdateText()
-        if (TVS.SV.notifications == true) then d("|c8080ffTelvar Saver|r deposited " .. "|c8080ff" .. tostring(amount).. "|r " .. " into your bank to reach " .. tostring(TVS.SV.DesiredTelvarAmount)) end
-
+        TVS.dtvs("auto deposited " .. "|c8080ff" .. tostring(amount).. "|r " .. TVS.TELVAR_CHAT_ICON)
         return
     end
 
     if (currentTelvarOnChar < TVS.SV.DesiredTelvarAmount) and (TVS.SV.AutoWithdrawTelvar == true) then
         local amount = TVS.SV.DesiredTelvarAmount - currentTelvarOnChar
-        if (currentTelvarStonesInBank < amount)   then  if ((TVS.SV.notifications== true)) then d("Auto withdraw failed") end return end
+        if (currentTelvarStonesInBank < amount)  then TVS.dtvs("Auto withdraw failed") return end
         WithdrawCurrencyFromBank(CURT_TELVAR_STONES, amount )
-        TVS.UpdateText()
-        if (TVS.SV.notifications == true) then  d("|c8080ffTelvar Saver|r attempted to withdraw ".. "|c8080ff" .. tostring(amount).. "|r " .. " from your bank to reach " .. tostring(TVS.SV.DesiredTelvarAmount) ) end
-
+        TVS.dtvs("auto withdrew " .. "|c8080ff" .. tostring(amount).. "|r " .. TVS.TELVAR_CHAT_ICON)
         return
     end
 end
@@ -186,30 +170,23 @@ end
 function TVS.TelvarButton(value)
     local currentTelvarOnChar = GetCarriedCurrencyAmount(CURT_TELVAR_STONES)
     local currentTelvarStonesInBank = GetBankedCurrencyAmount(CURT_TELVAR_STONES)
+
     if (currentTelvarOnChar > value) then
         local amount = currentTelvarOnChar - value
-
         DepositCurrencyIntoBank(CURT_TELVAR_STONES, amount)
-        TVS.UpdateText()
-        if (TVS.SV.notifications == true) then   d("|c8080ffTelvar Saver|r deposited ".. "|c8080ff" .. tostring(amount).. "|r " .. " into your bank to reach " .. tostring(value)) end
-
+        TVS.dtvs("deposited " .. "|c8080ff" .. tostring(amount).. "|r " .. TVS.TELVAR_CHAT_ICON)
         return
     end
 
     if (currentTelvarOnChar < value) then
         local amount = value - currentTelvarOnChar
-        if (currentTelvarStonesInBank < amount) then d("Not enough telvar to withdraw") return end
+
+        if (currentTelvarStonesInBank < amount) then TVS.dtvs("Not enough telvar to withdraw") return end
         WithdrawCurrencyFromBank(CURT_TELVAR_STONES, amount)
         TVS.UpdateText()
-        if (TVS.SV.notifications == true) then   d("|c8080ffTelvar Saver|r attempted to withdraw " .. "|c8080ff" .. tostring(amount).. "|r " .. " from your bank to reach " .. tostring(value) ) end
-
+        TVS.dtvs("withdrew " .. "|c8080ff" .. tostring(amount).. "|r " .. TVS.TELVAR_CHAT_ICON )
         return
     end
-end
-
-function TVS.CloseBank()
-    --TVSView:SetAlpha(0)
-    TVSView:SetHidden(true)
 end
 
 -- -------------------------------------------------------------------------------
@@ -226,18 +203,13 @@ function TVS.AutoQueue(eventCode, currencyType, currencyLocation, newAmount, old
 
     local currentTelvarOnChar = GetCarriedCurrencyAmount(CURT_TELVAR_STONES)
     if (currentTelvarOnChar >= TVS.SV.TelvarCap) then
-        local playerInBase = TVS.InSafeZone()
-        if (playerInBase == true) then return end
-
+        if (TVS.InSafeZone() == true) then return end
         local queueCyro = TVS.CAMPAIGNIDS[TVS.SV.CyroCamp]
-        -- d(GetCampaignQueueState(queueCyro))
         if (GetCampaignQueueState(queueCyro) ~= 3) then return else
-            if (TVS.SV.notifications == true) then   d("MAX TELVAR REACHED, queued for campaign") end
+            TVS.dtvs("MAX TELVAR REACHED, queued for campaign [" .. TVS.SV.CyroCamp .. "]")
+            TVS.UpdateLastLocation()
+            local groupQueue = TVS.GetGroupQueue()
 
-            local groupQueue = false
-            if (IsUnitGrouped('player') == true) and (IsUnitGroupLeader("player") == true) then
-                groupQueue = TVS.SV.GroupQueue
-            end
             QueueForCampaign(queueCyro,groupQueue)
             if (TVS.SV.UseBackup == true) then TVS.QueueControl() end
             TVS.AutoQueueControl()
@@ -249,26 +221,27 @@ end
 function TVS.queueCamp()
     local queueIC = TVS.CAMPAIGNIDS[TVS.SV.ICCamp]
     local queueCyro = TVS.CAMPAIGNIDS[TVS.SV.CyroCamp]
+    if (TVS.SV.ICCamp == "Last visited") then queueIC = TVS.SV.LastICCamp end
 
-    -- GroupQueue Stuff
-    local groupQueue = false
-    if (IsUnitGrouped('player') == true) and (IsUnitGroupLeader("player") == true) then
-        groupQueue = TVS.SV.GroupQueue
-    end
-
+    local groupQueue = TVS.GetGroupQueue()
 
     if (IsInImperialCity() == true)  then
         if (GetCampaignQueueState(queueCyro) ~= 3)  then return else
+            TVS.dtvs("Queued for cyro campaign [" .. TVS.SV.CyroCamp .. "]")
+
+            TVS.UpdateLastLocation()
+
             QueueForCampaign(queueCyro,groupQueue)
             if (TVS.SV.UseBackup == true) then TVS.QueueControl() end
             TVS.AutoQueueControl()
         end
-    else if (IsInCyrodiil() == true)  or (IsInAvAZone() == false) then
+    elseif (IsInCyrodiil() == true)  or (IsInAvAZone() == false) then
         if (GetCampaignQueueState(queueIC) ~= 3)  then return else
+            TVS.dtvs("Queued for IC campaign [" .. TVS.SV.ICCamp .. "]")
+
             QueueForCampaign(queueIC,groupQueue)
             TVS.AutoQueueControl()
         end
-    end
     end
 end
 -- Checking to see if the preferred camp has a queue
@@ -284,42 +257,39 @@ end
 -- Queueing for backup incase of queue
 function TVS.CheckQueue()
     local queueCyro = TVS.CAMPAIGNIDS[TVS.SV.CyroCamp]
+
     if (GetCampaignQueuePosition(queueCyro) > 0) then
         local newqueueCyro = TVS.CAMPAIGNIDS[TVS.SV.BackupCamp]
         if (newqueueCyro ~= queueCyro) then
+            local groupQueue = TVS.GetGroupQueue()
             LeaveCampaignQueue(queueCyro)
             QueueForCampaign(newqueueCyro,groupQueue)
-            d("Preferred campaign has a queue, queued for backup")
+            TVS.dtvs("Preferred campaign has a queue, queued for backup [" .. TVS.SV.BackupCamp .. "]")
         end
 
         -- We dont care about these any more
         EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_POSITION_CHANGED)
         EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_LEFT)
     end
-
 end
 
+-- Auto queue stuff
 function TVS.AutoQueueControl()
     if (TVS.SV.AutoAcceptQueue == false) then
         EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_STATE_CHANGED)
         return
     end
-
     EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_STATE_CHANGED,TVS.AutoAccept)
 end
 
 
 function TVS.AutoAccept(eventCode, id, isGroup, state)
-    local groupQueue = false
-    if (IsUnitGrouped('player') == true) and (IsUnitGroupLeader("player") == true) then
-        groupQueue = TVS.SV.GroupQueue
-    end
+    local groupQueue = TVS.GetGroupQueue()
 
     if (state == CAMPAIGN_QUEUE_REQUEST_STATE_CONFIRMING) then
-        d("Entering campaign...")
+        TVS.dtvs("Entering campaign")
         ConfirmCampaignEntry(id, groupQueue, true)
     end
-
 end
 
 -- a bunch of squares that accurately contains the IC safe zones
@@ -340,22 +310,40 @@ function TVS.InSafeZone()
     local zoneId, px, pz, py = GetUnitRawWorldPosition("player")
     if (zoneId ~= 643) then return false end
     for i,zone in ipairs(TVS.SafeZones) do
-        if (px >= zone.lowx) and (py >= zone.lowy) and (px <= zone.highx) and (py <= zone.highy)  then
-            --d("Telvar Cap reached but player in base")
-            return true
-        end
+        if (px >= zone.lowx) and (py >= zone.lowy) and (px <= zone.highx) and (py <= zone.highy)  then return true end
     end
     return false
 
 end
 
-function TVS.DebugStuff()
-    local zoneId, px, pz, py = GetUnitRawWorldPosition("player")
-    d(zoneId)
-    d("x: " ..px)
-    d("y: " ..py)
-    d("in base: " .. tostring(TVS.InSafeZone()))
-
+-- Checking if we should group queue or not
+function TVS.GetGroupQueue()
+    local groupQueue = false
+    if (IsUnitGrouped('player') == true) and (IsUnitGroupLeader("player") == true) then groupQueue = TVS.SV.GroupQueue end
+    return groupQueue
 end
+
+-- -------------------------------------------------------------------------------
+-- misc stuff
+-- -------------------------------------------------------------------------------
+
+function TVS.UpdateLastLocation()
+    if (IsInImperialCity() == false) then return end
+
+    TVS.SV.LastICCamp = GetCurrentCampaignId()
+end
+
+
+function TVS.dtvs(value)
+    if (TVS.SV.notifications == false) then return end
+    if (value == nil) then return end
+
+    d("|c8080ffTel Var Saver:|r " .. value)
+end
+
+function TVS.DebugStuff()
+    d(TVS.InSafeZone())
+end
+
 -- Entry Point
 EVENT_MANAGER:RegisterForEvent(TVS.name,EVENT_ADD_ON_LOADED,TVS.onLoad)
