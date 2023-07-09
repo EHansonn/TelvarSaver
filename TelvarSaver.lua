@@ -225,11 +225,13 @@ function TVS.queueCamp()
     if (TVS.SV.ICCamp == "Last visited") then queueIC = TVS.SV.LastICCamp end
 
     local groupQueue = TVS.GetGroupQueue()
-    if (groupQueue) then if (TVS.AutoKickOfflinePlayers(queueCyro) ~= 0) then return end end
+
 
 
     if (IsInImperialCity() == true)  then
         if (GetCampaignQueueState(queueCyro) ~= 3)  then return else
+            if (groupQueue) then if (TVS.AutoKickOfflinePlayers(queueCyro) ~= 0) then return end end
+
             TVS.dtvs("Queued for cyro campaign [" .. TVS.SV.CyroCamp .. "]")
 
             TVS.UpdateLastLocation()
@@ -240,6 +242,8 @@ function TVS.queueCamp()
         end
     elseif (IsInCyrodiil() == true)  or (IsInAvAZone() == false) then
         if (GetCampaignQueueState(queueIC) ~= 3)  then return else
+            if (groupQueue) then if (TVS.AutoKickOfflinePlayers(queueIC) ~= 0) then return end end
+
             TVS.dtvs("Queued for IC campaign [" .. TVS.SV.ICCamp .. "]")
 
             QueueForCampaign(queueIC,groupQueue)
