@@ -216,7 +216,7 @@ function TVS.CreateSettingsMenu()
     table.insert(options,
             {
                 type = "checkbox",
-                name = "Auto loot telvar (from containers) in IC",
+                name = "Auto loot telvar (containers and chests) in IC",
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
                 tooltip = "Determines if the addon will auto loot telvar when opening a loot menu",
                 default = TVS.defaults.AutoLootTelvar,
