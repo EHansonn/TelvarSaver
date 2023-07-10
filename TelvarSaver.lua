@@ -23,6 +23,7 @@ TVS.CAMPAIGNIDS = {
 }
 
 TVS.defaults = {
+    CloseLootWindow = true,
     AutoKickOffline = true,
     midyear = false,
     LastICCamp = 95,
@@ -116,18 +117,32 @@ end
 
 -- Checking if we looted a key fragment. Thanks smarter auto loot
 function TVS.OnLootUpdated()
+    local name, interactType, actionName, owned = GetLootTargetInfo()
     if (IsInImperialCity() == false) then return end
     if (TVS.SV.AutoLootGold == true) then LootMoney() end
-    if (TVS.SV.AutoLootTelvar == true) then LootCurrency(CURT_TELVAR_STONES) end
-    if (TVS.SV.AutoLootKeyFrags == false) then return end
-
-    local num = GetNumLootItems()
-    for i = 1, num, 1 do
-        local lootId, name, icon, quantity, quality, value, isQuest, isStolen, lootType = GetLootItemInfo(i)
-        local link = GetLootItemLink(lootId)
-        -- Keyfrag id 64487
-        if (GetItemLinkItemId(link) == 64487) then
-            TVS.LootItem(link,lootId,quantity)
+    if (TVS.SV.AutoLootTelvar == true) then
+        if (name == "Chest") then  LootCurrency(CURT_TELVAR_STONES) end
+        if (name == "Medium Tel Var Sack") or (name == "Hefty Tel Var Crate") or (name == "Light Tel Var Satchel") then
+            LootCurrency(CURT_TELVAR_STONES)
+            zo_callLater(function()
+                if (GetNumLootItems() ~= 0) then return end
+                local currentScene = SCENE_MANAGER:GetCurrentScene().name
+                SCENE_MANAGER:Toggle(currentScene)
+                if (tostring(currentScene) == "inventory") then
+                    SCENE_MANAGER:Show("inventory")
+                end
+            end,100)
+        end
+    end
+    if (TVS.SV.AutoLootKeyFrags == true) then
+        local num = GetNumLootItems()
+        for i = 1, num, 1 do
+            local lootId, name, icon, quantity, quality, value, isQuest, isStolen, lootType = GetLootItemInfo(i)
+            local link = GetLootItemLink(lootId)
+            -- Keyfrag id 64487
+            if (GetItemLinkItemId(link) == 64487) then
+                TVS.LootItem(link,lootId,quantity)
+            end
         end
     end
 end
@@ -377,7 +392,8 @@ function TVS.dtvs(value)
 end
 
 function TVS.DebugStuff()
-
+    local currentScene = SCENE_MANAGER:GetCurrentScene().name
+    SCENE_MANAGER:Toggle(currentScene)
 end
 
 -- Entry Point
