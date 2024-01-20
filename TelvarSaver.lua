@@ -1,11 +1,11 @@
 TVS = {}
 
 TVS.name = "Telvar Saver"
-TVS.version = "1.4.4"
+TVS.version = "1.4.5"
 TVS.author = "Ehansonn"
 
 TVS.SavedVariablesName = "TVSVars"
-TVS.SVVersion = "1.4.4"
+TVS.SVVersion = "1.4.5"
 
 TVS.CAMPAIGNIDS = {
     ["Ravenswatch"] = 103,

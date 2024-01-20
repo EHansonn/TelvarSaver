@@ -88,7 +88,7 @@ function TVS.CreateSettingsMenu()
                 name = "Backup Campaign",
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
                 tooltip = "Campaign to use if your preferred cyro campaign has a queue",
-                choices = {'Greyhost','Blackreach','Ravenswatch',"Quagmire","Fields of regret","Ashpit","Evergloam"},
+                choices = cyroChoices,
                 default = "Ravenswatch",
                 getFunc = function() return TVS.SV.BackupCamp end,
                 setFunc = function(value)
@@ -338,7 +338,7 @@ function TVS.CreateSettingsMenu()
 
     table.insert(options, {
         type = "button",
-        name = "reset ALL SETTINGS to defaults",
+        name = "reset ALL SETTINGS",
         func = function ()
             LAM.util.ShowConfirmationDialog("Reset all settings to defaults?","Requires a UI reload", function()
                 zo_callLater(function()
