@@ -1,7 +1,7 @@
 ## Title: TelvarSaver
-## APIVersion: 101039
+## APIVersion: 101040 101041
 ## SavedVariables: TVSVars
-## AddOnVersion: 1.4.5
+## AddOnVersion: 1.4.6
 ## IsLibrary: False
 ## Author: Ehansonn
 ## DependsOn: LibAddonMenu-2.0
