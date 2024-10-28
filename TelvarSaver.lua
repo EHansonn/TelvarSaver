@@ -1,14 +1,14 @@
 TVS = {}
 
 TVS.name = "Telvar Saver"
-TVS.version = "1.4.6"
+TVS.version = "1.4.7"
 TVS.author = "Ehansonn"
 
 TVS.SavedVariablesName = "TVSVars"
-TVS.SVVersion = "1.4.6"
+TVS.SVVersion = "1.4.7"
 
 TVS.CAMPAIGNIDS = {
-    ["Ravenswatch"] = 103,
+    ["Ravenwatch"] = 103,
     ["Greyhost"] = 102,
     ["Blackreach"] = 101,
     ["NOCP"] = 96,
@@ -29,7 +29,7 @@ TVS.defaults = {
     LastICCamp = 95,
     AutoAcceptQueue = false,
     SkipBankDialog = false,
-    BackupCamp = "Ravenswatch",
+    BackupCamp = "Ravenwatch",
     UseBackup = false,
     AutoLootGold = false,
     AutoLootTelvar = false,
@@ -43,7 +43,7 @@ TVS.defaults = {
     AutoWithdrawTelvar = false,
     DesiredTelvarAmount = 0,
     ICCamp = "CP",
-    CyroCamp = "Ravenswatch",
+    CyroCamp = "Ravenwatch",
     AutoQueueOut = true,
     TelvarCap = 50000,
     GroupQueue = false,
@@ -58,9 +58,11 @@ function TVS.onLoad(eventCode, addonName)
     EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_ADD_ON_LOADED)
     TVS.SV = ZO_SavedVars:NewAccountWide(TVS.SavedVariablesName, TVS.SVVersion, nil, TVS.defaults)
 
+    -- Check if a SV migration is needed
+    TVS.HandleMigration()
+
     -- Creating LAM2 Settings
     TVS.CreateSettingsMenu()
-
 
     -- Creating auto queue listener
     EVENT_MANAGER:RegisterForEvent(TVS.name,EVENT_CURRENCY_UPDATE, TVS.AutoQueue)
@@ -383,6 +385,23 @@ function TVS.UpdateLastLocation()
     TVS.SV.LastICCamp = GetCurrentCampaignId()
 end
 
+function TVS.HandleMigration()
+    local SVVersion = TVS.SV.version
+    if (SVVersion == TVS.version) then return end
+
+    if (SVVersion == "1.4.7") then
+        -- TODO here for 1.4.8
+    end
+
+    -- Prior to 1.4.7
+    if (SVVersion == "1.0" or SVVersion == "1.3" or SVVersion == "1.4.5" or SVVersion == "1.4.6") then
+        -- Fix for 'Ravenswatch' typo
+        if (TVS.SV.CyroCamp == "Ravenswatch") then 
+            TVS.SV.CyroCamp = TVS.defaults.CyroCamp
+        end
+    end
+end
+
 
 function TVS.dtvs(value)
     if (TVS.SV.notifications == false) then return end
@@ -392,6 +411,7 @@ function TVS.dtvs(value)
 end
 
 function TVS.DebugStuff()
+    d("cyrocamp: ".. TVS.SV.CyroCamp)
     local currentScene = SCENE_MANAGER:GetCurrentScene().name
     SCENE_MANAGER:Toggle(currentScene)
 end

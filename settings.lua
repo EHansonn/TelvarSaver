@@ -36,8 +36,8 @@ function TVS.CreateSettingsMenu()
         name = "Campaign Options",
 
     })
-    local cyroChoices = {'Greyhost','Blackreach','Ravenswatch'}
-    if (TVS.SV.midyear == true) then cyroChoices ={'Greyhost','Blackreach','Ravenswatch',"Quagmire","Fields of regret","Ashpit","Evergloam"} end
+    local cyroChoices = {'Greyhost','Blackreach','Ravenwatch'}
+    if (TVS.SV.midyear == true) then cyroChoices ={'Greyhost','Blackreach','Ravenwatch',"Quagmire","Fields of regret","Ashpit","Evergloam"} end
 
     table.insert(options,
             {
@@ -89,7 +89,7 @@ function TVS.CreateSettingsMenu()
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
                 tooltip = "Campaign to use if your preferred cyro campaign has a queue",
                 choices = cyroChoices,
-                default = "Ravenswatch",
+                default = "Ravenwatch",
                 getFunc = function() return TVS.SV.BackupCamp end,
                 setFunc = function(value)
                     TVS.SV.BackupCamp = value
