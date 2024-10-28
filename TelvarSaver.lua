@@ -82,7 +82,7 @@ function TVS.onLoad(eventCode, addonName)
     TVS.UpdateAnchors()
     TVS.UpdateText()
 
-    -- Auto loot key frags
+    -- Auto loot imperial fragments
     EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_LOOT_UPDATED,TVS.OnLootUpdated)
 
     -- Bank chatter dialog skip
@@ -117,7 +117,7 @@ end
 -- Autoloot stuff
 -- -------------------------------------------------------------------------------
 
--- Checking if we looted a key fragment. Thanks smarter auto loot
+-- Checking if we looted a imperial fragments. Thanks smarter auto loot
 function TVS.OnLootUpdated()
     local name, interactType, actionName, owned = GetLootTargetInfo()
     if (IsInImperialCity() == false) then return end
@@ -136,24 +136,31 @@ function TVS.OnLootUpdated()
             end,100)
         end
     end
+    
+    -- Looting Imperial Fragments
     if (TVS.SV.AutoLootKeyFrags == true) then
-        local num = GetNumLootItems()
-        for i = 1, num, 1 do
-            local lootId, name, icon, quantity, quality, value, isQuest, isStolen, lootType = GetLootItemInfo(i)
-            local link = GetLootItemLink(lootId)
-            -- Keyfrag id 64487
-            if (GetItemLinkItemId(link) == 64487) then
-                TVS.LootItem(link,lootId,quantity)
-            end
-        end
+        LootCurrency(CURT_IMPERIAL_FRAGMENTS)
     end
-end
--- Looting the key frag
-function TVS.LootItem(link, lootId, quantity)
-    LootItemById(lootId)
+
+    -- Legacy code for key frags
+
+    -- if (TVS.SV.AutoLootKeyFrags == true) then
+    --     local num = GetNumLootItems()
+    --     for i = 1, num, 1 do
+    --         local lootId, name, icon, quantity, quality, value, isQuest, isStolen, lootType = GetLootItemInfo(i)
+    --         local link = GetLootItemLink(lootId)
+    --         -- Keyfrag id 64487
+    --         if (GetItemLinkItemId(link) == 64487) then
+    --             TVS.LootItem(link,lootId,quantity)
+    --         end
+    --     end
+    -- end
 end
 
-
+-- -- Looting the key frag
+-- function TVS.LootItem(link, lootId, quantity)
+--     LootItemById(lootId)
+-- end
 
 -- -------------------------------------------------------------------------------
 -- Bank stuff
