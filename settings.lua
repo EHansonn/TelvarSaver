@@ -191,9 +191,9 @@ function TVS.CreateSettingsMenu()
     table.insert(options,
             {
                 type = "checkbox",
-                name = "Auto loot key frags",
+                name = "Auto loot imperial fragments",
                 textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-                tooltip = "Determines if the addon will auto loot key frags when opening a loot menu",
+                tooltip = "Determines if the addon will auto loot imperial fragments when opening a loot menu",
                 default = TVS.defaults.AutoLootKeyFrags,
                 getFunc = function() return TVS.SV.AutoLootKeyFrags end,
                 setFunc = function(value)
