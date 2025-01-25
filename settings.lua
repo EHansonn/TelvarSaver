@@ -30,7 +30,18 @@ function TVS.CreateSettingsMenu()
                     TVS.SV.notifications = value
                 end,
             })
-
+    table.insert(options,
+            {
+                type = "checkbox",
+                name = "Disable keybind in PVE",
+                textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+                tooltip = "Prevents accidential queueing if you accidently hit the key in a PVE zone",
+                default = TVS.defaults.DisableKeybindInPVE,
+                getFunc = function() return TVS.SV.DisableKeybindInPVE end,
+                setFunc = function(value)
+                    TVS.SV.DisableKeybindInPVE = value
+                end,
+            })
     table.insert(options, {
         type = "header",
         name = "Campaign Options",
@@ -370,6 +381,7 @@ function TVS.CreateSettingsMenu()
                     TVS.SV.AutoQueueOut = TVS.defaults.AutoQueueOut
                     TVS.SV.TelvarCap = TVS.defaults.TelvarCap
                     TVS.SV.GroupQueue = TVS.defaults.GroupQueue
+                    TVS.SV.DisableKeybindInPVE = TVS.defaults.DisableKeybindInPVE
                     ReloadUI()
                 end, 100)
             end)
