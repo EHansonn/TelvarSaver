@@ -38,5 +38,4 @@ end
 
 function TVS.UpdateUi()
     TVS.UpdateAnchors()
-    TVS.UpdateUi()
 end
