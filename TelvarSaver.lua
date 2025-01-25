@@ -1,11 +1,11 @@
 TVS = {}
 
 TVS.name = "Telvar Saver"
-TVS.version = "1.4.7"
+TVS.version = "1.4.8"
 TVS.author = "Ehansonn"
 
 TVS.SavedVariablesName = "TVSVars"
-TVS.SVVersion = "1.4.7"
+TVS.SVVersion = "1.4.8"
 
 TVS.CAMPAIGNIDS = {
     ["Ravenwatch"] = 103,
@@ -47,6 +47,7 @@ TVS.defaults = {
     AutoQueueOut = true,
     TelvarCap = 50000,
     GroupQueue = false,
+    DisableKeybindInPVE = true,
 }
 
 -- Telvar Icon
@@ -221,6 +222,8 @@ end
 function TVS.AutoQueue(eventCode, currencyType, currencyLocation, newAmount, oldAmount, reason, reasonSupplementaryInfo)
     if (TVS.SV.AutoQueueOut == false) then return end
     if not IsInImperialCity() then return end
+    if not IsInAvAZone() then return end
+
     if currencyType ~= CURT_TELVAR_STONES then return end
     if currencyLocation ~= CURRENCY_LOCATION_CHARACTER then return end
     if reason ~= CURRENCY_CHANGE_REASON_PVP_KILL_TRANSFER and reason ~= CURRENCY_CHANGE_REASON_LOOT then return end
@@ -250,7 +253,9 @@ function TVS.queueCamp()
 
     local groupQueue = TVS.GetGroupQueue()
 
-
+    if not IsInAvAZone() then
+        if TVS.SV.DisableKeybindInPVE == true then return end
+    end
 
     if (IsInImperialCity() == true)  then
         if (GetCampaignQueueState(queueCyro) ~= 3)  then return else
