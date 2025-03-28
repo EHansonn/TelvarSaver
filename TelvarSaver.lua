@@ -225,6 +225,31 @@ end
 -- Queue stuff
 -- -------------------------------------------------------------------------------
 
+function TVS.GetCyroCampaignId()
+    local queueCyro = TVS.CAMPAIGNIDS[TVS.SV.CyroCamp]
+    if (TVS.SV.CyroCamp == "Last visited Cyro") then queueCyro = TVS.SV.LastCyroCamp end
+    if (TVS.SV.CyroCamp == "Custom Cyro") then queueCyro = TVS.SV.CustomCyroCamp end
+
+    return queueCyro
+end
+
+function TVS.GetCyroBackupCampaignId()
+    local queueCyro = TVS.CAMPAIGNIDS[TVS.SV.BackupCamp]
+    if (TVS.SV.CyroCamp == "Last visited Cyro") then queueCyro = TVS.SV.LastCyroCamp end
+    if (TVS.SV.CyroCamp == "Custom Cyro") then queueCyro = TVS.SV.CustomCyroCamp end
+
+    return queueCyro
+end
+
+function TVS.GetICCampaignId()
+    local queueIC = TVS.CAMPAIGNIDS[TVS.SV.ICCamp]
+    if (TVS.SV.ICCamp == "Last visited IC") then queueIC = TVS.SV.LastICCamp end
+    if (TVS.SV.ICCamp == "Custom IC") then queueIC = TVS.SV.CustomICCamp end
+
+    return queueIC
+end
+
+
 -- For when you gain telvar and exceed your cap
 function TVS.AutoQueue(eventCode, currencyType, currencyLocation, newAmount, oldAmount, reason, reasonSupplementaryInfo)
     if (TVS.SV.AutoQueueOut == false) then return end
@@ -238,7 +263,7 @@ function TVS.AutoQueue(eventCode, currencyType, currencyLocation, newAmount, old
     local currentTelvarOnChar = GetCarriedCurrencyAmount(CURT_TELVAR_STONES)
     if (currentTelvarOnChar >= TVS.SV.TelvarCap) then
         if (TVS.InSafeZone() == true) then return end
-        local queueCyro = TVS.CAMPAIGNIDS[TVS.SV.CyroCamp]
+        local queueCyro = TVS.GetCyroCampaignId()
         if (GetCampaignQueueState(queueCyro) ~= 3) then return else
             TVS.dtvs("MAX TELVAR REACHED, queued for campaign [" .. TVS.SV.CyroCamp .. "]")
             TVS.UpdateLastLocation()
@@ -254,12 +279,8 @@ end
 
 -- For the keybind button press
 function TVS.queueCamp()
-    local queueIC = TVS.CAMPAIGNIDS[TVS.SV.ICCamp]
-    local queueCyro = TVS.CAMPAIGNIDS[TVS.SV.CyroCamp]
-    if (TVS.SV.ICCamp == "Last visited IC") then queueIC = TVS.SV.LastICCamp end
-    if (TVS.SV.CyroCamp == "Last visited Cyro") then queueCyro = TVS.SV.LastCyroCamp end
-    if (TVS.SV.ICCamp == "Custom IC") then queueIC = TVS.SV.CustomICCamp end
-    if (TVS.SV.CyroCamp == "Custom Cyro") then queueCyro = TVS.SV.CustomCyroCamp end
+    local queueIC =  TVS.GetICCampaignId()
+    local queueCyro = TVS.GetCyroCampaignId()
 
     local groupQueue = TVS.GetGroupQueue()
 
@@ -302,10 +323,10 @@ function TVS.QueueExit()
 end
 -- Queueing for backup incase of queue
 function TVS.CheckQueue()
-    local queueCyro = TVS.CAMPAIGNIDS[TVS.SV.CyroCamp]
+    local queueCyro = TVS.GetCyroCampaignId()
 
     if (GetCampaignQueuePosition(queueCyro) > 0) then
-        local newqueueCyro = TVS.CAMPAIGNIDS[TVS.SV.BackupCamp]
+        local newqueueCyro = TVS.GetCyroBackupCampaignId()
         if (newqueueCyro ~= queueCyro) then
             local groupQueue = TVS.GetGroupQueue()
             LeaveCampaignQueue(queueCyro)
@@ -445,6 +466,10 @@ function TVS.DebugStuff()
     d("Currently selected ICCamp: ".. TVS.SV.ICCamp)
     d("Current custom cyro camp: " .. TVS.SV.CustomCyroCamp)
     d("Current custom IC camp: " .. TVS.SV.CustomICCamp)
+    d("...")
+    d(TVS.GetCyroCampaignId())
+    d(TVS.GetCyroBackupCampaignId())
+    d(TVS.GetICCampaignId())
     local currentScene = SCENE_MANAGER:GetCurrentScene().name
     SCENE_MANAGER:Toggle(currentScene)
 end
