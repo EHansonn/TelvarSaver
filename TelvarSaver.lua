@@ -1,11 +1,11 @@
 TVS = {}
 
 TVS.name = "Telvar Saver"
-TVS.version = "1.4.8"
+TVS.version = "1.5"
 TVS.author = "Ehansonn"
 
 TVS.SavedVariablesName = "TVSVars"
-TVS.SVVersion = "1.4.8"
+TVS.SVVersion = "1.5"
 
 TVS.CAMPAIGNIDS = {
     ["Ravenwatch"] = 103,
@@ -19,7 +19,11 @@ TVS.CAMPAIGNIDS = {
     ["Fields of regret"] = 112,
     ["Ashpit"] = 106,
     ["Evergloam"] = 105,
-    ["Last visited"] = 95,
+    ["Last visited IC"] = 95,
+    ["Last visited Cyro"] = 103,
+    ["Vengeance"] = 124, -- for one week test. idk how long itll stick around
+    ["Custom Cyro"] = 103,
+    ["Custom IC"] = 95,
 }
 
 TVS.defaults = {
@@ -27,8 +31,11 @@ TVS.defaults = {
     AutoKickOffline = true,
     midyear = false,
     LastICCamp = 95,
+    LastCyroCamp = 103,
+    CustomICCamp = 95,
+    CustomCyroCamp = 103,
     AutoAcceptQueue = false,
-    SkipBankDialog = false,
+    SkipBankDialog = true,
     BackupCamp = "Ravenwatch",
     UseBackup = false,
     AutoLootGold = false,
@@ -249,7 +256,10 @@ end
 function TVS.queueCamp()
     local queueIC = TVS.CAMPAIGNIDS[TVS.SV.ICCamp]
     local queueCyro = TVS.CAMPAIGNIDS[TVS.SV.CyroCamp]
-    if (TVS.SV.ICCamp == "Last visited") then queueIC = TVS.SV.LastICCamp end
+    if (TVS.SV.ICCamp == "Last visited IC") then queueIC = TVS.SV.LastICCamp end
+    if (TVS.SV.CyroCamp == "Last visited Cyro") then queueCyro = TVS.SV.LastCyroCamp end
+    if (TVS.SV.ICCamp == "Custom IC") then queueIC = TVS.SV.CustomICCamp end
+    if (TVS.SV.CyroCamp == "Custom Cyro") then queueCyro = TVS.SV.CustomCyroCamp end
 
     local groupQueue = TVS.GetGroupQueue()
 
@@ -392,9 +402,15 @@ end
 -- -------------------------------------------------------------------------------
 
 function TVS.UpdateLastLocation()
-    if (IsInImperialCity() == false) then return end
+    if (IsInCyrodiil() == true) then 
+        TVS.SV.LastCyroCamp = GetCurrentCampaignId()
+        return 
+    end
 
-    TVS.SV.LastICCamp = GetCurrentCampaignId()
+    if (IsInImperialCity() == true) then
+        TVS.SV.LastICCamp = GetCurrentCampaignId()
+        return
+    end
 end
 
 function TVS.HandleMigration()
@@ -423,7 +439,12 @@ function TVS.dtvs(value)
 end
 
 function TVS.DebugStuff()
-    d("cyrocamp: ".. TVS.SV.CyroCamp)
+    local currentCamapginId = GetCurrentCampaignId()
+    TVS.dtvs("You are in campaign id: ".. currentCamapginId)
+    d("Currently selected CyroCamp: ".. TVS.SV.CyroCamp)
+    d("Currently selected ICCamp: ".. TVS.SV.ICCamp)
+    d("Current custom cyro camp: " .. TVS.SV.CustomCyroCamp)
+    d("Current custom IC camp: " .. TVS.SV.CustomICCamp)
     local currentScene = SCENE_MANAGER:GetCurrentScene().name
     SCENE_MANAGER:Toggle(currentScene)
 end
