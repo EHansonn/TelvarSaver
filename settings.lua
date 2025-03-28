@@ -47,8 +47,8 @@ function TVS.CreateSettingsMenu()
         name = "Campaign Options",
 
     })
-    local cyroChoices = {'Greyhost','Blackreach','Ravenwatch'}
-    if (TVS.SV.midyear == true) then cyroChoices ={'Greyhost','Blackreach','Ravenwatch',"Quagmire","Fields of regret","Ashpit","Evergloam"} end
+    local cyroChoices = {'Greyhost','Blackreach','Ravenwatch', "Vengeance", "Last visited Cyro"}
+    if (TVS.SV.midyear == true) then cyroChoices ={'Greyhost','Blackreach','Ravenwatch',"Quagmire","Fields of regret","Ashpit","Evergloam", "Vengeance", "Last visited Cyro"} end
 
     table.insert(options,
             {
@@ -63,8 +63,8 @@ function TVS.CreateSettingsMenu()
                     TVS.SV.CyroCamp = value
                 end,
             })
-    local icChoices = {'NOCP','CP',"Last visited"}
-    if (TVS.SV.midyear == true) then icChoices = {'NOCP','CP',"Last visited","Dragonfire","Legion Zero"} end
+    local icChoices = {'NOCP','CP',"Last visited IC"}
+    if (TVS.SV.midyear == true) then icChoices = {'NOCP','CP',"Last visited IC","Dragonfire","Legion Zero"} end
 
     table.insert(options,
             {
@@ -382,12 +382,57 @@ function TVS.CreateSettingsMenu()
                     TVS.SV.TelvarCap = TVS.defaults.TelvarCap
                     TVS.SV.GroupQueue = TVS.defaults.GroupQueue
                     TVS.SV.DisableKeybindInPVE = TVS.defaults.DisableKeybindInPVE
+                    TVS.SV.LastCyroCamp = TVS.defaults.LastCyroCamp
+                    TVS.SV.CustomCyroCamp = TVS.defaults.CustomCyroCamp
+                    TVS.SV.CustomICCamp = TVS.defaults.CustomICCamp
                     ReloadUI()
                 end, 100)
             end)
         end
     })
 
+
+    table.insert(options, {
+        type = "submenu",
+        name = "Advanced",
+        tooltip = "Advanced options",
+        controls = {
+            [1] = {
+                type = "description",
+                text = "Use this while INSIDE a cyrodil or Imperial City campaign to set it as your selected campaign. Use this if ZOS is doing some sort of testing with campaigns.",
+            },
+            [2] =  {
+                type = "button",
+                name = "Set Custom Campaign",
+                textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+                tooltip = "Set your cyro campaign to the one you're currently in. Should be used for custom capaigns that ZOS introduces during testing for their laggy game lol.",
+                func = function()
+                    LAM.util.ShowConfirmationDialog("Enable custom campaign?","You will have to reload your UI to see changes in the dropdown. Type /reloadui to see.", function()
+                        zo_callLater(function()
+
+                            if (IsInAvAZone() == false) then
+                                TVS.dtvs("Update failed not in Cyro or IC")
+                                return
+                            end
+                        
+                            if (IsInCyrodiil() == true) then 
+                                TVS.SV.CustomCyroCamp = GetCurrentCampaignId()
+                                TVS.SV.CyroCamp = "Custom Cyro"
+                                TVS.dtvs("Set Cyro campaign id to: " .. GetCurrentCampaignId())
+                            end
+                        
+                            if (IsInImperialCity() == true) then
+                                TVS.SV.CustomICCamp = GetCurrentCampaignId()
+                                TVS.SV.ICCamp = "Custom IC"
+                                TVS.dtvs("Set IC campaign id to: " .. GetCurrentCampaignId())
+                            end
+                            
+                        end, 200)
+                    end)
+                end,
+            },
+        },
+    })
 
 
     -- Registering Panel and Options
