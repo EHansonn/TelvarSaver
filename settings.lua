@@ -169,7 +169,7 @@ function TVS.CreateSettingsMenu()
 
 	table.insert(options, {
 		type = "description",
-		text = "Midyear mayham setting has been removed. Campaign lists are now dynamic and update based on what's currently available.",
+		text = "Midyear mayhem setting has been removed. Campaign lists are now dynamic and update based on what's currently available.",
 	})
 
 	table.insert(options, {
