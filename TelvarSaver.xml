@@ -4,7 +4,7 @@
             <Dimensions x="275" y="200" />
             <Anchor point="BOTTOM" relativeTo="GuiRoot" relativePoint="CENTER" />
             <OnMoveStop>
-                TVS.SaveLocation()
+                TelVarSaver.SaveLocation()
             </OnMoveStop>
             <Controls>
 
@@ -27,7 +27,7 @@
                               mouseOver="EsoUI/Art/Buttons/closebutton_mouseover.dds"
                               disabled="EsoUI/Art/Buttons/closebutton_disabled.dds"/>
                     <OnClicked>
-                        TVS.SetHidden()
+                        TelVarSaver.SetHidden()
                     </OnClicked>
                 </Button>
 
@@ -43,7 +43,7 @@
                               mouseOver="EsoUI/Art/Tooltips/icon_bag.dds"
                               disabled="EsoUI/Art/Tooltips/icon_bag.dds"/>
                     <OnClicked>
-                        TVS.TelvarButton(10000)
+                        TelVarSaver.TelvarButton(10000)
                     </OnClicked>
                 </Button>
 
@@ -59,7 +59,7 @@
                               mouseOver="EsoUI/Art/Tooltips/icon_bag.dds"
                               disabled="EsoUI/Art/Tooltips/icon_bag.dds"/>
                     <OnClicked>
-                        TVS.TelvarButton(1000)
+                        TelVarSaver.TelvarButton(1000)
                     </OnClicked>
                 </Button>
 
@@ -74,7 +74,7 @@
                               mouseOver="EsoUI/Art/Tooltips/icon_bag.dds"
                               disabled="EsoUI/Art/Tooltips/icon_bag.dds"/>
                     <OnClicked>
-                        TVS.TelvarButton(0)
+                        TelVarSaver.TelvarButton(0)
                     </OnClicked>
                 </Button>
                 <Label name="$(parent)CurrentText" font="ZoFontAnnounceMedium" text="Current">

@@ -2,7 +2,7 @@
     <Layer name="SI_KEYBINDINGS_LAYER_GENERAL">
         <Category name="Telvar Saver">
             <Action name="QUEUETVSCAMP">
-                <Down>TVS.queueCamp()</Down>
+                <Down>TelVarSaver.queueCamp()</Down>
             </Action>
         </Category>
     </Layer>

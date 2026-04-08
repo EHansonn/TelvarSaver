@@ -1,0 +1,58 @@
+name: Build And Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build release zip from manifest file list
+        id: build
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VERSION="$(awk -F': ' '/^## AddOnVersion:/{print $2}' TelvarSaver.txt | tr -d '\r' | xargs)"
+          if [ -z "${VERSION}" ]; then
+            echo "Could not parse AddOnVersion from TelvarSaver.txt"
+            exit 1
+          fi
+
+          TAG="v${VERSION}-build-${GITHUB_RUN_NUMBER}"
+          ZIP_NAME="TelvarSaver-${VERSION}.zip"
+
+          mkdir -p dist/TelvarSaver
+          cp "TelvarSaver.txt" "dist/TelvarSaver/"
+
+          # Read build files from manifest (non-empty lines that are not metadata/comments)
+          mapfile -t BUILD_FILES < <(awk 'NF && $1 !~ /^##/ && $1 !~ /^;/' TelvarSaver.txt)
+          for file in "${BUILD_FILES[@]}"; do
+            cp "$file" "dist/TelvarSaver/"
+          done
+
+          (
+            cd dist
+            zip -r "../${ZIP_NAME}" "TelvarSaver"
+          )
+
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "zip=${ZIP_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.build.outputs.tag }}
+          name: TelvarSaver v${{ steps.build.outputs.version }}
+          files: ${{ steps.build.outputs.zip }}
+          generate_release_notes: true
