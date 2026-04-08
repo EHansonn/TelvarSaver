@@ -1,4 +1,5 @@
 local LAM = LibAddonMenu2
+TelVarSaver = TelVarSaver or {}
 local TVS = TelVarSaver
 -- Creating LAM2 MENU --
 function TVS.CreateSettingsMenu()

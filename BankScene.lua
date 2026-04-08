@@ -1,3 +1,4 @@
+TelVarSaver = TelVarSaver or {}
 local TVS = TelVarSaver
 
 function TVS.HideUi() TVSView:SetHidden(true) end
