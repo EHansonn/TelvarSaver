@@ -1,6 +1,5 @@
 TelVarSaver = TelVarSaver or {}
 local TVS = TelVarSaver
-_G.TVS = TelVarSaver
 
 TVS.name = "Telvar Saver"
 TVS.version = "1.6"
