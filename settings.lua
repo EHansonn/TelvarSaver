@@ -59,7 +59,6 @@ function TVS.CreateSettingsMenu()
 		return names, values
 	end
 
-	local cyroChoices, cyroChoiceValues = GetDynamicCampaignChoices(false)
 	local icChoices, icChoiceValues = GetDynamicCampaignChoices(true)
 	local function GetAlternativeICCampaignId(excludedId, fallbackId)
 		for _, id in ipairs(icChoiceValues) do
@@ -158,8 +157,8 @@ function TVS.CreateSettingsMenu()
 		default = TVS.defaults.AutoAcceptQueue,
 		getFunc = function() return TVS.SV.AutoAcceptQueue end,
 		setFunc = function(value)
-			EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_CAMPAIGN_QUEUE_STATE_CHANGED)
 			TVS.SV.AutoAcceptQueue = value
+			TVS.AutoQueueControl()
 		end,
 	})
 	table.insert(options, {
@@ -196,6 +195,7 @@ function TVS.CreateSettingsMenu()
 		getFunc = function() return TVS.SV.TelvarCap end,
 		setFunc = function(text)
 			local value = tonumber(text)
+			if not value then value = TVS.SV.TelvarCap end
 			if value <= 0 then value = 1 end
 			TVS.SV.TelvarCap = value
 		end,
@@ -293,6 +293,7 @@ function TVS.CreateSettingsMenu()
 		getFunc = function() return TVS.SV.DesiredTelvarAmount end,
 		setFunc = function(text)
 			local amount = tonumber(text)
+			if not amount then amount = TVS.SV.DesiredTelvarAmount end
 			-- If you really really really want to take out more than 10k for some reason with this addon, remove the if statement at your own risk
 			if (amount < 0) or (amount > 10000) then
 				amount = 0
@@ -375,6 +376,8 @@ function TVS.CreateSettingsMenu()
 					TVS.SV.TelvarCap = TVS.defaults.TelvarCap
 					TVS.SV.GroupQueue = TVS.defaults.GroupQueue
 					TVS.SV.DisableKeybindInPVE = TVS.defaults.DisableKeybindInPVE
+					TVS.SV.SmartQueuePicker = TVS.defaults.SmartQueuePicker
+					TVS.SV.AllowCyrodiilCampaigns = TVS.defaults.AllowCyrodiilCampaigns
 					ReloadUI()
 				end, 100)
 			end)

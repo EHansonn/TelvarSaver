@@ -42,7 +42,7 @@ TVS.defaults = {
 	GroupQueue = false,
 	DisableKeybindInPVE = true,
 	SmartQueuePicker = false,
-	AllowCyrodiilCampaigns = true,
+	AllowCyrodiilCampaigns = false,
 }
 
 -- Telvar Icon
@@ -251,13 +251,13 @@ end
 function TVS.GetHomeCampaignId()
 	local desired = TVS.SV.ICCamp
 	local fallback = TVS.defaults.ICCamp
-	return TVS.GetAvailableCampaignId(desired, fallback)
+	return TVS.GetAvailableICCampaignId(desired, fallback)
 end
 
 function TVS.GetEscapeICCampaignId()
 	local desired = TVS.SV.EscapeCamp
 	local fallback = TVS.defaults.EscapeCamp
-	return TVS.GetAvailableCampaignId(desired, fallback)
+	return TVS.GetAvailableICCampaignId(desired, fallback)
 end
 
 -- Helper function to determine if a given campaign id is available for queueing
@@ -276,22 +276,30 @@ function TVS.IsCampaignIdAvailableToQueue(campaignId)
 	return false
 end
 
--- requireIC:
---  - true: only accept Imperial City campaigns
---  - false: only accept non-Imperial City campaigns
-function TVS.GetAvailableCampaignId(desiredId, fallbackId)
-	if (type(desiredId) == "number") and TVS.IsCampaignIdAvailableToQueue(desiredId) then return desiredId end
+function TVS.GetAvailableICCampaignId(desiredId, fallbackId)
+	if
+		(type(desiredId) == "number")
+		and (IsImperialCityCampaign(desiredId) == true)
+		and TVS.IsCampaignIdAvailableToQueue(desiredId)
+	then
+		return desiredId
+	end
 
-	if (type(fallbackId) == "number") and TVS.IsCampaignIdAvailableToQueue(fallbackId) then return fallbackId end
+	if
+		(type(fallbackId) == "number")
+		and (IsImperialCityCampaign(fallbackId) == true)
+		and TVS.IsCampaignIdAvailableToQueue(fallbackId)
+	then
+		return fallbackId
+	end
 
-	-- Last resort: pick the first available campaign
+	-- Last resort: pick the first available IC campaign
 	local n = GetNumSelectionCampaigns()
 	for i = 1, n do
 		local id = GetSelectionCampaignId(i)
-		if TVS.IsCampaignIdAvailableToQueue(id) then return id end
+		if (IsImperialCityCampaign(id) == true) and TVS.IsCampaignIdAvailableToQueue(id) then return id end
 	end
 
-	-- If selection list is empty/unavailable, just return fallback.
 	return fallbackId
 end
 
@@ -470,7 +478,7 @@ function TVS.queueCamp()
 				if TVS.AutoKickOfflinePlayers(homeIC) ~= 0 then return end
 			end
 
-			TVS.QueueForCampaignWithEstimate(homeIC, groupQueue, "Home")
+			TVS.QueueForCampaignWithEstimate(homeIC, groupQueue)
 			TVS.AutoQueueControl()
 		end
 	end
@@ -533,18 +541,20 @@ function TVS.AutoKickOfflinePlayers(campaignID)
 	local count = 0
 	if size < 1 then return count end
 
-	for player = 1, size do
-		if not (IsUnitOnline(GetGroupUnitTagByIndex(player))) then
-			GroupKick(GetGroupUnitTagByIndex(player))
+	for player = size, 1, -1 do
+		local unitTag = GetGroupUnitTagByIndex(player)
+		if not (IsUnitOnline(unitTag)) then
+			local name = GetUnitName(unitTag)
+			GroupKick(unitTag)
 			count = count + 1
-			TVS.dtvs("Kicking " .. GetUnitName(GetGroupUnitTagByIndex(player)))
+			TVS.dtvs("Kicking " .. name)
 		end
 	end
 
 	if count > 0 then
 		zo_callLater(function()
 			local newGroupQueue = TVS.GetGroupQueue()
-			TVS.QueueForCampaignWithEstimate(campaignID, newGroupQueue, "Requeue (offline players removed)")
+			TVS.QueueForCampaignWithEstimate(campaignID, newGroupQueue)
 			TVS.AutoQueueControl()
 		end, 200)
 	end
@@ -620,3 +630,6 @@ function TVS.DebugStuff()
 
     TVS.DebugLogSelectionCampaigns()
 end
+
+
+EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_ADD_ON_LOADED, TVS.onLoad)
