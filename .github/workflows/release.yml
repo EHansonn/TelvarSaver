@@ -35,8 +35,9 @@ jobs:
           cp "TelvarSaver.txt" "dist/TelvarSaver/"
 
           # Read build files from manifest (non-empty lines that are not metadata/comments)
-          mapfile -t BUILD_FILES < <(awk 'NF && $1 !~ /^##/ && $1 !~ /^;/' TelvarSaver.txt)
+          mapfile -t BUILD_FILES < <(awk 'NF && $1 !~ /^##/ && $1 !~ /^;/' TelvarSaver.txt | tr -d '\r')
           for file in "${BUILD_FILES[@]}"; do
+            [ -z "${file}" ] && continue
             cp "$file" "dist/TelvarSaver/"
           done
 
