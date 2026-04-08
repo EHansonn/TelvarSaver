@@ -4,7 +4,7 @@
 ## AddOnVersion: 1.6
 ## IsLibrary: False
 ## Author: Ehansonn
-## DependsOn: LibAddonMenu-2.0
+## DependsOn: LibAddonMenu-2.0>=37
 
 
 ; DISCLAIMER:
