@@ -32,7 +32,7 @@ function TVS.CreateSettingsMenu()
 		type = "checkbox",
 		name = "Disable keybind in PVE",
 		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "Prevents accidential queueing if you accidently hit the key in a PVE zone",
+		tooltip = "Prevents accidental queueing if you accidentally hit the key in a PVE zone",
 		default = TVS.defaults.DisableKeybindInPVE,
 		getFunc = function() return TVS.SV.DisableKeybindInPVE end,
 		setFunc = function(value) TVS.SV.DisableKeybindInPVE = value end,
