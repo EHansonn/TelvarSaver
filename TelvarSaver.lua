@@ -50,6 +50,23 @@ TVS.TELVAR_CHAT_ICON = (zo_iconTextFormat("EsoUI/Art/currency/currency_telvar_32
 
 TVS.SV = {}
 
+TVS.CAMPAIGN_SELECTION_REFRESH_INTERVAL_MS = 10 * 60 * 1000 -- 10 minutes
+TVS.CAMPAIGN_SELECTION_REFRESH_THROTTLE_MS = 30 * 1000 -- 30 seconds
+TVS.lastCampaignSelectionQueryMS = 0
+
+function TVS.MaybeQueryCampaignSelectionData(throttleMs)
+	if type(QueryCampaignSelectionData) ~= "function" then return end
+
+	local now = GetFrameTimeMilliseconds()
+	local minDelta = throttleMs or TVS.CAMPAIGN_SELECTION_REFRESH_THROTTLE_MS
+	if (now - (TVS.lastCampaignSelectionQueryMS or 0)) < minDelta then return end
+
+	TVS.lastCampaignSelectionQueryMS = now
+	QueryCampaignSelectionData()
+end
+
+function TVS.EnsureCampaignSelectionDataReady() TVS.MaybeQueryCampaignSelectionData(0) end
+
 function TVS.onLoad(eventCode, addonName)
 	EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_ADD_ON_LOADED)
 	TVS.SV = ZO_SavedVars:NewAccountWide(TVS.SavedVariablesName, TVS.SVVersion, nil, TVS.defaults)
@@ -57,8 +74,25 @@ function TVS.onLoad(eventCode, addonName)
 	-- Check if a SV migration is needed
 	TVS.HandleMigration()
 
-	-- Creating LAM2 Settings
-	TVS.CreateSettingsMenu()
+	-- Ensure campaign selection list is populated (used by settings dropdowns)
+	TVS.EnsureCampaignSelectionDataReady()
+
+	-- Keep campaign selection data reasonably fresh for queue estimates
+	EVENT_MANAGER:RegisterForUpdate(
+		TVS.name .. "_CampaignSelectionRefresh",
+		TVS.CAMPAIGN_SELECTION_REFRESH_INTERVAL_MS,
+		function() TVS.MaybeQueryCampaignSelectionData(TVS.CAMPAIGN_SELECTION_REFRESH_INTERVAL_MS) end
+	)
+
+	-- Creating LAM2 Settings (may need to wait for campaign data)
+	if type(GetNumSelectionCampaigns) == "function" and GetNumSelectionCampaigns() > 0 then
+		TVS.CreateSettingsMenu()
+	else
+		EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_CAMPAIGN_SELECTION_DATA_CHANGED, function()
+			EVENT_MANAGER:UnregisterForEvent(TVS.name, EVENT_CAMPAIGN_SELECTION_DATA_CHANGED)
+			TVS.CreateSettingsMenu()
+		end)
+	end
 
 	-- Creating auto queue listener
 	EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_CURRENCY_UPDATE, TVS.AutoQueue)
@@ -358,7 +392,7 @@ function TVS.GetCampaignQueueWaitPretty(campaignId)
 	return "unknown"
 end
 
-function TVS.QueueForCampaignWithEstimate(campaignId, queueAsGroup, context)
+function TVS.QueueForCampaignWithEstimate(campaignId, queueAsGroup)
 	if TVS.CanQueueForCampaign(campaignId) == false then return false end
 
 	local name = tostring(GetCampaignName(campaignId))
@@ -366,6 +400,10 @@ function TVS.QueueForCampaignWithEstimate(campaignId, queueAsGroup, context)
 	TVS.dtvs(string.format("Queued for [%s] (estimated wait %s)", name, waitPretty))
 
 	QueueForCampaign(campaignId, queueAsGroup)
+
+	-- Try to refresh selection data so queue wait estimates are fresh-ish next time
+	TVS.MaybeQueryCampaignSelectionData()
+
 	return true
 end
 
@@ -573,16 +611,12 @@ function TVS.DebugLogSelectionCampaigns()
 end
 
 function TVS.DebugStuff()
-	local currentCamapginId = GetCurrentCampaignId()
-	TVS.dtvs("You are in campaign id: " .. currentCamapginId)
+    TVS.MaybeQueryCampaignSelectionData()
+
+	local currentCampaignId = GetCurrentCampaignId()
+	TVS.dtvs("You are in campaign id: " .. tostring(currentCampaignId))
 	d("...")
 	d(TVS.GetHomeCampaignId())
 
-	TVS.DebugLogSelectionCampaigns()
-
-	local currentScene = SCENE_MANAGER:GetCurrentScene().name
-	SCENE_MANAGER:Toggle(currentScene)
+    TVS.DebugLogSelectionCampaigns()
 end
-
--- Entry Point
-EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_ADD_ON_LOADED, TVS.onLoad)
