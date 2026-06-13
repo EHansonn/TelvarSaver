@@ -16,10 +16,6 @@ function TVS.CreateSettingsMenu()
 	local options = {}
 
 	table.insert(options, {
-		type = "description",
-		text = "Check your controls for the keybind, its unbound by default",
-	})
-	table.insert(options, {
 		type = "checkbox",
 		name = "Chat Notifications",
 		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
@@ -28,198 +24,12 @@ function TVS.CreateSettingsMenu()
 		getFunc = function() return TVS.SV.notifications end,
 		setFunc = function(value) TVS.SV.notifications = value end,
 	})
-	table.insert(options, {
-		type = "checkbox",
-		name = "Disable keybind in PVE",
-		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "Prevents accidental queueing if you accidentally hit the key in a PVE zone",
-		default = TVS.defaults.DisableKeybindInPVE,
-		getFunc = function() return TVS.SV.DisableKeybindInPVE end,
-		setFunc = function(value) TVS.SV.DisableKeybindInPVE = value end,
-	})
-	table.insert(options, {
-		type = "header",
-		name = "Campaign Options",
-	})
-	local function GetDynamicCampaignChoices(requireIC)
-		local names = {}
-		local values = {}
-
-		local n = GetNumSelectionCampaigns()
-		for i = 1, n do
-			local id = GetSelectionCampaignId(i)
-			if (type(id) == "number") and (IsImperialCityCampaign(id) == requireIC) then
-				if DoesPlayerMeetCampaignRequirements(id) == true then
-					table.insert(names, GetCampaignName(id))
-					table.insert(values, id)
-				end
-			end
-		end
-
-		return names, values
-	end
-
-	local icChoices, icChoiceValues = GetDynamicCampaignChoices(true)
-	local function GetAlternativeICCampaignId(excludedId, fallbackId)
-		for _, id in ipairs(icChoiceValues) do
-			if id ~= excludedId then return id end
-		end
-		if fallbackId ~= excludedId then return fallbackId end
-		return nil
-	end
-
-	table.insert(options, {
-		type = "dropdown",
-		name = "Home Campaign",
-		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "Your primary IC campaign. If your current campaign is not home, TelvarSaver will queue this one first.",
-		choices = icChoices,
-		choicesValues = icChoiceValues,
-		default = TVS.defaults.ICCamp,
-		getFunc = function() return TVS.GetHomeCampaignId() end,
-		setFunc = function(value)
-			TVS.SV.ICCamp = value
-			if TVS.SV.ICCamp == TVS.SV.EscapeCamp then
-				local newEscape = GetAlternativeICCampaignId(TVS.SV.ICCamp, TVS.defaults.EscapeCamp)
-				if newEscape ~= nil then
-					TVS.SV.EscapeCamp = newEscape
-					LAM.util.ShowConfirmationDialog(
-						"Campaigns must be different",
-						"Home Campaign cannot match Escape Campaign. Escape was changed automatically.",
-						function() end
-					)
-				else
-					LAM.util.ShowConfirmationDialog(
-						"No alternate IC campaign",
-						"Only one eligible IC campaign is available right now, so Home/Escape cannot be separated.",
-						function() end
-					)
-				end
-			end
-		end,
-	})
-
-	table.insert(options, {
-		type = "dropdown",
-		name = "Escape Campaign",
-		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "Used when you are already in Home Campaign and Smart IC queue picker is disabled.",
-		choices = icChoices,
-		choicesValues = icChoiceValues,
-		default = TVS.defaults.EscapeCamp,
-		getFunc = function() return TVS.GetEscapeICCampaignId() end,
-		setFunc = function(value)
-			TVS.SV.EscapeCamp = value
-			if TVS.SV.EscapeCamp == TVS.SV.ICCamp then
-				local newHome = GetAlternativeICCampaignId(TVS.SV.EscapeCamp, TVS.defaults.ICCamp)
-				if newHome ~= nil then
-					TVS.SV.ICCamp = newHome
-					LAM.util.ShowConfirmationDialog(
-						"Campaigns must be different",
-						"Escape Campaign cannot match Home Campaign. Home was changed automatically.",
-						function() end
-					)
-				else
-					LAM.util.ShowConfirmationDialog(
-						"No alternate IC campaign",
-						"Only one eligible IC campaign is available right now, so Home/Escape cannot be separated.",
-						function() end
-					)
-				end
-			end
-		end,
-	})
-
-	table.insert(options, {
-		type = "checkbox",
-		name = "Smart IC queue picker",
-		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "When leaving Imperial City, dynamically pick the best campaign using the live campaign list (eligibility, Tel Var restriction, and lowest queue wait time).",
-		default = TVS.defaults.SmartQueuePicker,
-		getFunc = function() return TVS.SV.SmartQueuePicker end,
-		setFunc = function(value) TVS.SV.SmartQueuePicker = value end,
-	})
-	table.insert(options, {
-		type = "checkbox",
-		name = "Allow Cyrodiil campaigns (Smart Queue)",
-		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "If off, Smart Queue will only consider Imperial City campaigns. If on, it may pick Cyrodiil campaigns too (based on lowest queue wait time), as long as your current Tel Var amount does not prevent queuing for that campaign.",
-		default = TVS.defaults.AllowCyrodiilCampaigns,
-		getFunc = function() return TVS.SV.AllowCyrodiilCampaigns end,
-		setFunc = function(value) TVS.SV.AllowCyrodiilCampaigns = value end,
-	})
-
-	table.insert(options, {
-		type = "checkbox",
-		name = "Auto accept queue",
-		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "Do you want the queue to auto accept? Unneeded if you already have kill counter's auto accept enabled.",
-		default = TVS.defaults.AutoAcceptQueue,
-		getFunc = function() return TVS.SV.AutoAcceptQueue end,
-		setFunc = function(value)
-			TVS.SV.AutoAcceptQueue = value
-			TVS.AutoQueueControl()
-		end,
-	})
-	table.insert(options, {
-		type = "description",
-		text = "Backup campaign queueing has been removed (Smart IC queue picker supersedes it).",
-	})
-
-	table.insert(options, {
-		type = "description",
-		text = "Midyear mayhem setting has been removed. Campaign lists are now dynamic and update based on what's currently available.",
-	})
 
 	table.insert(options, {
 		type = "header",
 		name = "Time/Life Savers",
 	})
 
-	table.insert(options, {
-		type = "checkbox",
-		name = "Auto leave when telvar limit reached",
-		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "Only triggers if you gain telvar, and the limit exceeds the set amount below. Wont trigger if you withdraw from your bank or something so be careful",
-		default = TVS.defaults.AutoQueueOut,
-		getFunc = function() return TVS.SV.AutoQueueOut end,
-		setFunc = function(value) TVS.SV.AutoQueueOut = value end,
-	})
-
-	table.insert(options, {
-		type = "editbox",
-		name = "Telvar limit",
-		tooltip = "If you kill a mob or player and your telvar gained exceeds this int, you will queue out",
-		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		default = TVS.defaults.TelvarCap,
-		getFunc = function() return TVS.SV.TelvarCap end,
-		setFunc = function(text)
-			local value = tonumber(text)
-			if not value then value = TVS.SV.TelvarCap end
-			if value <= 0 then value = 1 end
-			TVS.SV.TelvarCap = value
-		end,
-	})
-
-	table.insert(options, {
-		type = "checkbox",
-		name = "Group queue ",
-		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "Determines if you group queue if youre the group leader when you hit the keybind or reach your cap",
-		default = TVS.defaults.GroupQueue,
-		getFunc = function() return TVS.SV.GroupQueue end,
-		setFunc = function(value) TVS.SV.GroupQueue = value end,
-	})
-
-	table.insert(options, {
-		type = "checkbox",
-		name = "Auto kick offline (IMPORTANT) ",
-		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "To group queue you need to have no offline members in your group. By having this disabled, you will not be able to queue if you have an offline person in your group",
-		default = TVS.defaults.AutoKickOffline,
-		getFunc = function() return TVS.SV.AutoKickOffline end,
-		setFunc = function(value) TVS.SV.AutoKickOffline = value end,
-	})
 	table.insert(options, {
 		type = "checkbox",
 		name = "Auto loot imperial fragments",
@@ -332,6 +142,216 @@ function TVS.CreateSettingsMenu()
 			TVS.SV.dragable = value
 			TVS.UpdateAnchors()
 		end,
+	})
+
+	table.insert(options, {
+		type = "header",
+		name = "[DEPRECATED] Campaign Options",
+	})
+	local function GetDynamicCampaignChoices(requireIC)
+		local names = {}
+		local values = {}
+
+		local n = GetNumSelectionCampaigns()
+		for i = 1, n do
+			local id = GetSelectionCampaignId(i)
+			if (type(id) == "number") and (IsImperialCityCampaign(id) == requireIC) then
+				if DoesPlayerMeetCampaignRequirements(id) == true then
+					table.insert(names, GetCampaignName(id))
+					table.insert(values, id)
+				end
+			end
+		end
+
+		return names, values
+	end
+
+	local icChoices, icChoiceValues = GetDynamicCampaignChoices(true)
+	local function GetAlternativeICCampaignId(excludedId, fallbackId)
+		for _, id in ipairs(icChoiceValues) do
+			if id ~= excludedId then return id end
+		end
+		if fallbackId ~= excludedId then return fallbackId end
+		return nil
+	end
+
+	table.insert(options, {
+		type = "description",
+		text = "Update 50: You can no longer queue into either Imperial City or Cyrodiil campaigns with more than "
+			.. tostring(GetTelVarQueueThreshold())
+			.. ""
+			.. " | "
+			.. TVS.TELVAR_CHAT_ICON,
+	})
+
+	table.insert(options, {
+		type = "description",
+		text = "Therefore settings below may not work as expected or be very useful at all lol. I could see this still being somewhat useful for sweaty pvpers who would rather queue out of cyro to avoid dying",
+	})
+
+	table.insert(options, {
+		type = "description",
+		text = "Its been a long road since this addon was released. It was super funny watching all the people on the forums disagree on if this addon was a TOS violation or not. Its insane to me that ZOS let this obvious flaw in their api go unaddressed for so long. Like the fact they spent effort changing how the queue worked in update 49, just to change it again in update 50 tells me how incompetent the ZOS devs are. Like how are you guys incapable of patching the most obvious abuse of queue logic. Clearly the intended game mechanic is to the use sigils of retreat but some goofball basically removed the whole mechanic for like 10 years by letting you queue via the API or campaign window lmao.",
+	})
+
+	table.insert(options, {
+		type = "description",
+		text = "If you have any usefil tips, suggestions, workarounds or feature requests feel free to add a comment on the ESOUI page",
+	})
+
+	table.insert(options, {
+		type = "dropdown",
+		name = "Home Campaign",
+		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+		tooltip = "Your primary IC campaign. If your current campaign is not home, TelvarSaver will queue this one first.",
+		choices = icChoices,
+		choicesValues = icChoiceValues,
+		default = TVS.defaults.ICCamp,
+		getFunc = function() return TVS.GetHomeCampaignId() end,
+		setFunc = function(value)
+			TVS.SV.ICCamp = value
+			if TVS.SV.ICCamp == TVS.SV.EscapeCamp then
+				local newEscape = GetAlternativeICCampaignId(TVS.SV.ICCamp, TVS.defaults.EscapeCamp)
+				if newEscape ~= nil then
+					TVS.SV.EscapeCamp = newEscape
+					LAM.util.ShowConfirmationDialog(
+						"Campaigns must be different",
+						"Home Campaign cannot match Escape Campaign. Escape was changed automatically.",
+						function() end
+					)
+				else
+					LAM.util.ShowConfirmationDialog(
+						"No alternate IC campaign",
+						"Only one eligible IC campaign is available right now, so Home/Escape cannot be separated.",
+						function() end
+					)
+				end
+			end
+		end,
+	})
+
+	table.insert(options, {
+		type = "dropdown",
+		name = "Escape Campaign",
+		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+		tooltip = "Used when you are already in Home Campaign and Smart IC queue picker is disabled.",
+		choices = icChoices,
+		choicesValues = icChoiceValues,
+		default = TVS.defaults.EscapeCamp,
+		getFunc = function() return TVS.GetEscapeICCampaignId() end,
+		setFunc = function(value)
+			TVS.SV.EscapeCamp = value
+			if TVS.SV.EscapeCamp == TVS.SV.ICCamp then
+				local newHome = GetAlternativeICCampaignId(TVS.SV.EscapeCamp, TVS.defaults.ICCamp)
+				if newHome ~= nil then
+					TVS.SV.ICCamp = newHome
+					LAM.util.ShowConfirmationDialog(
+						"Campaigns must be different",
+						"Escape Campaign cannot match Home Campaign. Home was changed automatically.",
+						function() end
+					)
+				else
+					LAM.util.ShowConfirmationDialog(
+						"No alternate IC campaign",
+						"Only one eligible IC campaign is available right now, so Home/Escape cannot be separated.",
+						function() end
+					)
+				end
+			end
+		end,
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Auto leave when telvar limit reached",
+		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+		tooltip = "Only triggers if you gain telvar, and the limit exceeds the set amount below. Wont trigger if you withdraw from your bank or something so be careful",
+		default = TVS.defaults.AutoQueueOut,
+		getFunc = function() return TVS.SV.AutoQueueOut end,
+		setFunc = function(value) TVS.SV.AutoQueueOut = value end,
+	})
+
+	table.insert(options, {
+		type = "editbox",
+		name = "Telvar limit (max " .. tostring(GetTelVarQueueThreshold()) .. ")",
+		tooltip = "If you kill a mob or player and your telvar gained exceeds this int, you will queue out",
+		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+		default = TVS.defaults.TelvarCap,
+		getFunc = function() return TVS.SV.TelvarCap end,
+		setFunc = function(text)
+			local value = tonumber(text)
+			if not value then value = TVS.SV.TelvarCap end
+			if value <= 0 then value = 1 end
+			if value > GetTelVarQueueThreshold() then value = GetTelVarQueueThreshold() end
+			TVS.SV.TelvarCap = value
+		end,
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Smart IC queue picker",
+		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+		tooltip = "When leaving Imperial City, dynamically pick the best campaign using the live campaign list (eligibility, Tel Var restriction, and lowest queue wait time).",
+		default = TVS.defaults.SmartQueuePicker,
+		getFunc = function() return TVS.SV.SmartQueuePicker end,
+		setFunc = function(value) TVS.SV.SmartQueuePicker = value end,
+	})
+	table.insert(options, {
+		type = "checkbox",
+		name = "Allow Cyrodiil campaigns (Smart Queue)",
+		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+		tooltip = "If off, Smart Queue will only consider Imperial City campaigns. If on, it may pick Cyrodiil campaigns too (based on lowest queue wait time), as long as your current Tel Var amount does not prevent queuing for that campaign.",
+		default = TVS.defaults.AllowCyrodiilCampaigns,
+		getFunc = function() return TVS.SV.AllowCyrodiilCampaigns end,
+		setFunc = function(value) TVS.SV.AllowCyrodiilCampaigns = value end,
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Auto accept queue",
+		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+		tooltip = "Do you want the queue to auto accept? Unneeded if you already have kill counter's auto accept enabled.",
+		default = TVS.defaults.AutoAcceptQueue,
+		getFunc = function() return TVS.SV.AutoAcceptQueue end,
+		setFunc = function(value)
+			TVS.SV.AutoAcceptQueue = value
+			TVS.AutoQueueControl()
+		end,
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Auto kick offline (IMPORTANT) ",
+		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+		tooltip = "To group queue you need to have no offline members in your group. By having this disabled, you will not be able to queue if you have an offline person in your group",
+		default = TVS.defaults.AutoKickOffline,
+		getFunc = function() return TVS.SV.AutoKickOffline end,
+		setFunc = function(value) TVS.SV.AutoKickOffline = value end,
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Group queue ",
+		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+		tooltip = "Determines if you group queue if youre the group leader when you hit the keybind or reach your cap",
+		default = TVS.defaults.GroupQueue,
+		getFunc = function() return TVS.SV.GroupQueue end,
+		setFunc = function(value) TVS.SV.GroupQueue = value end,
+	})
+
+	table.insert(options, {
+		type = "description",
+		text = "Check your controls for the keybind, its unbound by default",
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Disable keybind in PVE",
+		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
+		tooltip = "Prevents accidental queueing if you accidentally hit the key in a PVE zone",
+		default = TVS.defaults.DisableKeybindInPVE,
+		getFunc = function() return TVS.SV.DisableKeybindInPVE end,
+		setFunc = function(value) TVS.SV.DisableKeybindInPVE = value end,
 	})
 
 	table.insert(options, {
