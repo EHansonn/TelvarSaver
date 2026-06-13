@@ -196,7 +196,7 @@ function TVS.CreateSettingsMenu()
 
 	table.insert(options, {
 		type = "description",
-		text = "If you have any usefil tips, suggestions, workarounds or feature requests feel free to add a comment on the ESOUI page",
+		text = "If you have any useful tips, suggestions, workarounds or feature requests feel free to add a comment on the ESOUI page",
 	})
 
 	table.insert(options, {
