@@ -186,12 +186,7 @@ function TVS.CreateSettingsMenu()
 
 	table.insert(options, {
 		type = "description",
-		text = "Therefore settings below may not work as expected or be very useful at all lol. I could see this still being somewhat useful for sweaty pvpers who would rather queue out of cyro to avoid dying",
-	})
-
-	table.insert(options, {
-		type = "description",
-		text = "Its been a long road since this addon was released. It was super funny watching all the people on the forums disagree on if this addon was a TOS violation or not. Its insane to me that ZOS let this obvious flaw in their api go unaddressed for so long. Like the fact they spent effort changing how the queue worked in update 49, just to change it again in update 50 tells me how incompetent the ZOS devs are. Like how are you guys incapable of patching the most obvious abuse of queue logic. Clearly the intended game mechanic is to the use sigils of retreat but some goofball basically removed the whole mechanic for like 10 years by letting you queue via the API or campaign window lmao.",
+		text = "Therefore settings below may not work as expected or be very useful at all.",
 	})
 
 	table.insert(options, {
