@@ -380,7 +380,7 @@ end
 function TVS.CanQueueForCampaign(campaignId)
 	if campaignId == nil then return false end
 	if DoesTelVarAmountPreventQueuing() == true then
-		TVS.dtvs("Cannot queue: Tel Var amount prevents queuing for [" .. tostring(GetCampaignName(campaignId)) .. "] with more than " .. tostring(GetTelVarQueueThreshold()) .. TVS.TELVAR_CHAT_ICON)
+		TVS.dtvs("Cannot queue: Tel Var amount prevents queuing for [" .. tostring(GetCampaignName(campaignId)) .. "] with more than " .. tostring(GetTelVarQueueThreshold()) .. " " .. TVS.TELVAR_CHAT_ICON)
 		return false
 	end
 	return true
