@@ -2,11 +2,11 @@ TelVarSaver = TelVarSaver or {}
 local TVS = TelVarSaver
 
 TVS.name = "Telvar Saver"
-TVS.version = "1.6"
+TVS.version = "1.7"
 TVS.author = "Ehansonn"
 
 TVS.SavedVariablesName = "TVSVars"
-TVS.SVVersion = "1.6"
+TVS.SVVersion = "1.7"
 
 -- Known campaign IDs (reference-only for dev/debug):
 -- Ravenwatch=103, Greyhost=102, Blackreach=101
@@ -19,10 +19,10 @@ TVS.CAMPAIGN_ID_LEGION_ZERO = 116
 
 TVS.defaults = {
 	CloseLootWindow = true,
-	AutoKickOffline = true,
+	AutoKickOffline = false,
 	LastICCamp = 95,
 	CustomICCamp = 95,
-	AutoAcceptQueue = true,
+	AutoAcceptQueue = false,
 	SkipBankDialog = true,
 	AutoLootGold = false,
 	AutoLootTelvar = false,
@@ -37,8 +37,8 @@ TVS.defaults = {
 	DesiredTelvarAmount = 0,
 	ICCamp = 95,
 	EscapeCamp = 96,
-	AutoQueueOut = true,
-	TelvarCap = 50000,
+	AutoQueueOut = false,
+	TelvarCap = 100,
 	GroupQueue = false,
 	DisableKeybindInPVE = true,
 	SmartQueuePicker = false,
@@ -267,7 +267,7 @@ function TVS.IsCampaignIdAvailableToQueue(campaignId)
 	for i = 1, n do
 		if
 			GetSelectionCampaignId(i) == campaignId
-			and (DoesTelVarAmountPreventQueuingForCampaign(campaignId) == false)
+			and (DoesTelVarAmountPreventQueuing() == false)
 			and (DoesPlayerMeetCampaignRequirements(campaignId) == true)
 		then
 			return true
@@ -352,7 +352,7 @@ function TVS.GetTargetICCampaignIdFromIC()
 				if allowed then
 					if
 						(DoesPlayerMeetCampaignRequirements(id) == true)
-						and (DoesTelVarAmountPreventQueuingForCampaign(id) == false)
+						and (DoesTelVarAmountPreventQueuing() == false)
 					then
 						local waitS = GetSelectionCampaignQueueWaitTime(i)
 						if (bestId == nil) or (waitS < bestWaitS) then
@@ -379,8 +379,8 @@ end
 
 function TVS.CanQueueForCampaign(campaignId)
 	if campaignId == nil then return false end
-	if DoesTelVarAmountPreventQueuingForCampaign(campaignId) == true then
-		TVS.dtvs("Cannot queue: Tel Var amount prevents queuing for [" .. tostring(GetCampaignName(campaignId)) .. "]")
+	if DoesTelVarAmountPreventQueuing() == true then
+		TVS.dtvs("Cannot queue: Tel Var amount prevents queuing for [" .. tostring(GetCampaignName(campaignId)) .. "] with more than " .. tostring(GetTelVarQueueThreshold()) .. " telvar" .. " | " .. TVS.TELVAR_CHAT_ICON)
 		return false
 	end
 	return true
@@ -599,8 +599,9 @@ function TVS.DebugLogSelectionCampaigns()
 		local id = GetSelectionCampaignId(i)
 		local isIC = IsImperialCityCampaign(id)
 		local meetsReq = DoesPlayerMeetCampaignRequirements(id)
-		local telvarBlocked = DoesTelVarAmountPreventQueuingForCampaign(id)
+		local telvarBlocked = DoesTelVarAmountPreventQueuing()
 		local waitS = GetSelectionCampaignQueueWaitTime(i)
+		local newfunc = GetTelVarQueueThreshold()
 		d(
 			tostring(i)
 				.. ") "
@@ -615,6 +616,8 @@ function TVS.DebugLogSelectionCampaigns()
 				.. tostring(telvarBlocked)
 				.. ", waitS="
 				.. tostring(waitS)
+				.. ", newfunc="
+				.. tostring(newfunc)
 				.. ")"
 		)
 	end
