@@ -2,7 +2,7 @@ TelVarSaver = TelVarSaver or {}
 local TVS = TelVarSaver
 
 TVS.name = "TelVar Saver"
-TVS.version = "1.8"
+TVS.version = "1.9"
 TVS.author = "Ehansonn"
 
 TVS.SavedVariablesName = "TVSVars"
@@ -52,6 +52,19 @@ TVS.defaults = {
 	AutoLeaveToggleDragable = false,
 	AutoLeaveToggleX = -250,
 	AutoLeaveToggleY = 250,
+	SigilReminderEnabled = true,
+	SigilReminderHideInSafeZone = false,
+	SigilReminderThreshold = 1,
+	SigilReminderDurationS = 3,
+	SigilReminderColor = { 1, 0.25, 0.25, 1 },
+	SigilReminderSoundEnabled = false,
+	SigilReminderSound = "NEW_TIMED_NOTIFICATION",
+	SigilAutoBuyEnabled = false,
+	SigilDesiredAmount = 5,
+	SigilMaxSpendAP = 0,
+	SigilMinAPReserve = 0,
+	SigilBankWithdraw = true,
+	notifySigil = true,
 }
 
 -- Telvar Icon
@@ -115,8 +128,11 @@ function TVS.onLoad(eventCode, addonName)
 	-- Creating keybinds
 	ZO_CreateStringId("SI_BINDING_NAME_QUEUETVSCAMP", "Queue into your selected campaign")
 	ZO_CreateStringId("SI_BINDING_NAME_TVSTOGGLEAUTOLEAVE", "Toggle auto leave when Tel Var limit reached")
+	ZO_CreateStringId("SI_BINDING_NAME_TVSUSESIGIL", "Use Sigil of Imperial Retreat")
 	SLASH_COMMANDS["/tvs"] = TVS.queueCamp
 	SLASH_COMMANDS["/tvsdb"] = TVS.DebugStuff
+
+	TVS.SetupSigilReminder()
 
 	-- Update Bank Scene UI
 	TVS.UpdateAnchors()
@@ -406,7 +422,7 @@ end
 function TVS.CanQueueForCampaign(campaignId)
 	if campaignId == nil then return false end
 	if DoesTelVarAmountPreventQueuing() == true then
-		TVS.dtvs("Cannot queue: Tel Var amount prevents queuing for [" .. tostring(GetCampaignName(campaignId)) .. "] with more than " .. tostring(GetTelVarQueueThreshold()) .. " " .. TVS.TELVAR_CHAT_ICON, "notifyQueue")
+		TVS.dtvs("Cannot queue: Cannot queue for [" .. tostring(GetCampaignName(campaignId)) .. "] with more than " .. tostring(GetTelVarQueueThreshold()) .. " " .. TVS.TELVAR_CHAT_ICON, "notifyQueue")
 		return false
 	end
 	return true
@@ -628,7 +644,7 @@ function TVS.dtvs(value, category)
 	if (category ~= nil) and (TVS.SV[category] == false) then return end
 	if value == nil then return end
 
-	d("|c8080ffTelVarSaver:|r " .. value)
+	d("|c8080ffTelVar Saver:|r " .. value)
 end
 
 function TVS.DebugLogSelectionCampaigns()

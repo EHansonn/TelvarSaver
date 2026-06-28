@@ -1,7 +1,7 @@
 ## Title: TelVarSaver
 ## APIVersion: 101050
 ## SavedVariables: TVSVars
-## AddOnVersion: 1.8
+## AddOnVersion: 1.9
 ## IsLibrary: False
 ## Author: Ehansonn
 ## DependsOn: LibAddonMenu-2.0>=37
@@ -22,4 +22,5 @@ settings.lua
 bindings.xml
 BankScene.lua
 AutoLeaveToggle.lua
+SigilReminder.lua
 TelvarSaver.xml
