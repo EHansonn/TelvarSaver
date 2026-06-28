@@ -22,4 +22,4 @@ All features are customizable from the settings menu.
 Requirements:
 *[URL="https://www.esoui.com/downloads/info7-LibAddonMenu.html"][COLOR=Orange]LibAddonMenu-2.0[/COLOR][/URL]
 
-Recommended that you also use an addon like kill counter to auto accept queue invites if you don't enable the auto queue accepter in Telvar Saver.
+Recommended that you also use an addon like kill counter to auto accept queue invites if you don't enable the auto queue accepter in Telvar Saver
