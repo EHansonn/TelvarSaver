@@ -452,6 +452,8 @@ function TVS.AutoQueue(eventCode, currencyType, currencyLocation, newAmount, old
 	if reason ~= CURRENCY_CHANGE_REASON_PVP_KILL_TRANSFER and reason ~= CURRENCY_CHANGE_REASON_LOOT then return end
 
 	local currentTelvarOnChar = GetCarriedCurrencyAmount(CURT_TELVAR_STONES)
+	if GetTelVarQueueThreshold() <= currentTelvarOnChar then return end
+
 	if currentTelvarOnChar >= TVS.SV.TelvarCap then
 		if TVS.InSafeZone() == true then return end
 		local otherIC = TVS.GetTargetICCampaignIdFromIC()
