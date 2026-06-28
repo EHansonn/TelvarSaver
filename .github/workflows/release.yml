@@ -2,11 +2,28 @@ name: Build And Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      compatibility:
+        description: ESO game compatibility version
+        required: true
+        default: "12.0.0"
+      test:
+        description: Use ESOUI test upload endpoint
+        required: true
+        type: boolean
+        default: true
 
 permissions:
   contents: write
+
+env:
+  ADDON_NAME: TelvarSaver
+  ESOUI_ADDON_ID: "3664"
+  DEFAULT_ESOUI_COMPATIBILITY: "12.0.0"
+  ESOUI_API_KEY: ${{ secrets.ESOUI_API_KEY }}
 
 jobs:
   release:
@@ -22,38 +39,55 @@ jobs:
         run: |
           set -euo pipefail
 
-          VERSION="$(awk -F': ' '/^## AddOnVersion:/{print $2}' TelvarSaver.txt | tr -d '\r' | xargs)"
+          VERSION="$(awk -F': ' '/^## AddOnVersion:/{print $2}' "${ADDON_NAME}.txt" | tr -d '\r' | xargs)"
           if [ -z "${VERSION}" ]; then
-            echo "Could not parse AddOnVersion from TelvarSaver.txt"
+            echo "Could not parse AddOnVersion from ${ADDON_NAME}.txt"
             exit 1
           fi
 
-          TAG="v${VERSION}-build-${GITHUB_RUN_NUMBER}"
-          ZIP_NAME="TelvarSaver-${VERSION}.zip"
+          ZIP_NAME="${ADDON_NAME}-${VERSION}.zip"
 
-          mkdir -p dist/TelvarSaver
-          cp "TelvarSaver.txt" "dist/TelvarSaver/"
+          mkdir -p "dist/${ADDON_NAME}"
+          cp "${ADDON_NAME}.txt" "dist/${ADDON_NAME}/"
 
-          # Read build files from manifest (non-empty lines that are not metadata/comments)
-          mapfile -t BUILD_FILES < <(awk 'NF && $1 !~ /^##/ && $1 !~ /^;/' TelvarSaver.txt | tr -d '\r')
+          # Read build files from manifest: non-empty lines that are not metadata/comments.
+          mapfile -t BUILD_FILES < <(awk 'NF && $1 !~ /^##/ && $1 !~ /^;/' "${ADDON_NAME}.txt" | tr -d '\r')
           for file in "${BUILD_FILES[@]}"; do
             [ -z "${file}" ] && continue
-            cp "$file" "dist/TelvarSaver/"
+            cp "$file" "dist/${ADDON_NAME}/"
           done
 
           (
             cd dist
-            zip -r "../${ZIP_NAME}" "TelvarSaver"
+            zip -r "../${ZIP_NAME}" "${ADDON_NAME}"
           )
 
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "zip=${ZIP_NAME}" >> "$GITHUB_OUTPUT"
 
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ADDON_NAME }}-${{ steps.build.outputs.version }}
+          path: ${{ steps.build.outputs.zip }}
+
       - name: Create GitHub release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.build.outputs.tag }}
-          name: TelvarSaver v${{ steps.build.outputs.version }}
+          name: ${{ env.ADDON_NAME }} v${{ steps.build.outputs.version }}
           files: ${{ steps.build.outputs.zip }}
           generate_release_notes: true
+
+      - name: Upload to ESOUI
+        if: env.ESOUI_API_KEY != ''
+        uses: m00nyONE/esoui-upload@v2
+        with:
+          api_key: ${{ secrets.ESOUI_API_KEY }}
+          addon_id: ${{ env.ESOUI_ADDON_ID }}
+          version: ${{ steps.build.outputs.version }}
+          zip_file: ${{ steps.build.outputs.zip }}
+          changelog_file: CHANGELOG.md
+          description_file: README_ESOUI.txt
+          compatibility: ${{ inputs.compatibility || env.DEFAULT_ESOUI_COMPATIBILITY }}
+          test: ${{ inputs.test || false }}
