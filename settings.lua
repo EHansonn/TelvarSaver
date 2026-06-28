@@ -16,13 +16,47 @@ function TVS.CreateSettingsMenu()
 	local options = {}
 
 	table.insert(options, {
-		type = "checkbox",
+		type = "header",
 		name = "Chat Notifications",
-		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "",
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Chat notifications (master)",
+		tooltip = "Master switch for all Tel Var Saver chat messages. When off, nothing below is printed.",
 		default = TVS.defaults.notifications,
 		getFunc = function() return TVS.SV.notifications end,
 		setFunc = function(value) TVS.SV.notifications = value end,
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Bank notifications",
+		tooltip = "Deposits and withdrawals: auto/manual deposit and withdraw messages, and bank-related warnings.",
+		default = TVS.defaults.notifyBank,
+		disabled = function() return TVS.SV.notifications == false end,
+		getFunc = function() return TVS.SV.notifyBank end,
+		setFunc = function(value) TVS.SV.notifyBank = value end,
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Auto-leave notifications",
+		tooltip = "Messages when you toggle 'Auto leave when telvar limit reached' on or off.",
+		default = TVS.defaults.notifyAutoLeave,
+		disabled = function() return TVS.SV.notifications == false end,
+		getFunc = function() return TVS.SV.notifyAutoLeave end,
+		setFunc = function(value) TVS.SV.notifyAutoLeave = value end,
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Queue / campaign notifications",
+		tooltip = "Messages about queuing, entering campaigns, queue blocks, and kicking offline group members.",
+		default = TVS.defaults.notifyQueue,
+		disabled = function() return TVS.SV.notifications == false end,
+		getFunc = function() return TVS.SV.notifyQueue end,
+		setFunc = function(value) TVS.SV.notifyQueue = value end,
 	})
 
 	table.insert(options, {
@@ -63,7 +97,7 @@ function TVS.CreateSettingsMenu()
 		type = "checkbox",
 		name = "Skip bank dialog in IC",
 		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "Will skip the bank dialog if youre in IC.",
+		tooltip = "Will skip the bank dialog if you're in IC.",
 		default = TVS.defaults.SkipBankDialog,
 		getFunc = function() return TVS.SV.SkipBankDialog end,
 		setFunc = function(value) TVS.SV.SkipBankDialog = value end,
@@ -81,7 +115,10 @@ function TVS.CreateSettingsMenu()
 		tooltip = "If your current carried telvar exceeds your desired amount, deposit the excess",
 		default = TVS.defaults.AutoDepoTelvar,
 		getFunc = function() return TVS.SV.AutoDepoTelvar end,
-		setFunc = function(value) TVS.SV.AutoDepoTelvar = value end,
+		setFunc = function(value)
+			TVS.SV.AutoDepoTelvar = value
+			TVS.UpdateBankControls()
+		end,
 	})
 
 	table.insert(options, {
@@ -91,7 +128,10 @@ function TVS.CreateSettingsMenu()
 		tooltip = "If your current carried telvar is below your desired amount, withdraw the amount to reach it",
 		default = TVS.defaults.AutoWithdrawTelvar,
 		getFunc = function() return TVS.SV.AutoWithdrawTelvar end,
-		setFunc = function(value) TVS.SV.AutoWithdrawTelvar = value end,
+		setFunc = function(value)
+			TVS.SV.AutoWithdrawTelvar = value
+			TVS.UpdateBankControls()
+		end,
 	})
 
 	table.insert(options, {
@@ -110,6 +150,7 @@ function TVS.CreateSettingsMenu()
 				d("Invalid amount. Must be between 0 and 10000")
 			end
 			TVS.SV.DesiredTelvarAmount = amount
+			TVS.UpdateBankControls()
 		end,
 	})
 
@@ -126,21 +167,66 @@ function TVS.CreateSettingsMenu()
 		default = TVS.defaults.BankScene,
 		getFunc = function() return TVS.SV.BankScene end,
 		setFunc = function(value)
-			if value == false then TVS.CloseBank() end
+			if value == false then TVS.HideUi() end
 			TVS.SV.BankScene = value
 		end,
 	})
 
 	table.insert(options, {
 		type = "checkbox",
-		name = "Dragable",
+		name = "Draggable",
 		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
 		tooltip = "",
-		default = TVS.defaults.dragable,
-		getFunc = function() return TVS.SV.dragable end,
+		default = TVS.defaults.draggable,
+		getFunc = function() return TVS.SV.draggable end,
 		setFunc = function(value)
-			TVS.SV.dragable = value
+			TVS.SV.draggable = value
 			TVS.UpdateAnchors()
+		end,
+	})
+
+	table.insert(options, {
+		type = "header",
+		name = "Auto-Leave Widget",
+	})
+
+	table.insert(options, {
+		type = "description",
+		text = "Toggles 'Auto leave when telvar limit reached' on/off without opening this menu. It shows your telvar limit in green when on, red when off.",
+	})
+
+	
+	table.insert(options, {
+		type = "checkbox",
+		name = "Show button",
+		tooltip = "Shows a small draggable icon that toggles 'Auto leave when telvar limit reached' on/off without opening this menu.",
+		default = TVS.defaults.AutoLeaveToggleShow,
+		getFunc = function() return TVS.SV.AutoLeaveToggleShow end,
+		setFunc = function(value)
+			TVS.SV.AutoLeaveToggleShow = value
+			TVS.RefreshAutoLeaveToggleVisibility()
+		end,
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Draggable",
+		tooltip = "Determines if the on-screen Auto-Leave toggle button can be dragged.",
+		default = TVS.defaults.AutoLeaveToggleDragable,
+		getFunc = function() return TVS.SV.AutoLeaveToggleDragable end,
+		setFunc = function(value)
+			TVS.SV.AutoLeaveToggleDragable = value
+			TVS.UpdateAutoLeaveTogglePosition()
+		end,
+	})
+
+	table.insert(options, {
+		type = "button",
+		name = "Reset Auto-Leave toggle position",
+		func = function()
+			TVS.SV.AutoLeaveToggleX = TVS.defaults.AutoLeaveToggleX
+			TVS.SV.AutoLeaveToggleY = TVS.defaults.AutoLeaveToggleY
+			TVS.UpdateAutoLeaveTogglePosition()
 		end,
 	})
 
@@ -260,10 +346,13 @@ function TVS.CreateSettingsMenu()
 		type = "checkbox",
 		name = "Auto leave when telvar limit reached",
 		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "Only triggers if you gain telvar, and the limit exceeds the set amount below. Wont trigger if you withdraw from your bank or something so be careful",
+		tooltip = "Only triggers if you gain telvar, and the limit exceeds the set amount below. Won't trigger if you withdraw from your bank or something so be careful",
 		default = TVS.defaults.AutoQueueOut,
 		getFunc = function() return TVS.SV.AutoQueueOut end,
-		setFunc = function(value) TVS.SV.AutoQueueOut = value end,
+		setFunc = function(value)
+			TVS.SV.AutoQueueOut = value
+			TVS.UpdateAutoLeaveToggleVisual()
+		end,
 	})
 
 	table.insert(options, {
@@ -279,6 +368,7 @@ function TVS.CreateSettingsMenu()
 			if value <= 0 then value = 1 end
 			if value > GetTelVarQueueThreshold() then value = GetTelVarQueueThreshold() end
 			TVS.SV.TelvarCap = value
+			TVS.UpdateAutoLeaveToggleVisual()
 		end,
 	})
 
@@ -328,7 +418,7 @@ function TVS.CreateSettingsMenu()
 		type = "checkbox",
 		name = "Group queue ",
 		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "Determines if you group queue if youre the group leader when you hit the keybind or reach your cap",
+		tooltip = "Determines if you group queue if you're the group leader when you hit the keybind or reach your cap",
 		default = TVS.defaults.GroupQueue,
 		getFunc = function() return TVS.SV.GroupQueue end,
 		setFunc = function(value) TVS.SV.GroupQueue = value end,
@@ -336,7 +426,7 @@ function TVS.CreateSettingsMenu()
 
 	table.insert(options, {
 		type = "description",
-		text = "Check your controls for the keybind, its unbound by default",
+		text = "Check your controls for the keybind, it's unbound by default",
 	})
 
 	table.insert(options, {
@@ -378,7 +468,10 @@ function TVS.CreateSettingsMenu()
 					TVS.SV.AutoLootTelvar = TVS.defaults.AutoLootTelvar
 					TVS.SV.AutoLootKeyFrags = TVS.defaults.AutoLootKeyFrags
 					TVS.SV.notifications = TVS.defaults.notifications
-					TVS.SV.dragable = TVS.defaults.dragable
+					TVS.SV.notifyBank = TVS.defaults.notifyBank
+					TVS.SV.notifyAutoLeave = TVS.defaults.notifyAutoLeave
+					TVS.SV.notifyQueue = TVS.defaults.notifyQueue
+					TVS.SV.draggable = TVS.defaults.draggable
 					TVS.SV.locationx = TVS.defaults.locationx
 					TVS.SV.locationy = TVS.defaults.locationy
 					TVS.SV.BankScene = TVS.defaults.BankScene
@@ -393,6 +486,10 @@ function TVS.CreateSettingsMenu()
 					TVS.SV.DisableKeybindInPVE = TVS.defaults.DisableKeybindInPVE
 					TVS.SV.SmartQueuePicker = TVS.defaults.SmartQueuePicker
 					TVS.SV.AllowCyrodiilCampaigns = TVS.defaults.AllowCyrodiilCampaigns
+					TVS.SV.AutoLeaveToggleShow = TVS.defaults.AutoLeaveToggleShow
+					TVS.SV.AutoLeaveToggleDragable = TVS.defaults.AutoLeaveToggleDragable
+					TVS.SV.AutoLeaveToggleX = TVS.defaults.AutoLeaveToggleX
+					TVS.SV.AutoLeaveToggleY = TVS.defaults.AutoLeaveToggleY
 					ReloadUI()
 				end, 100)
 			end)
@@ -400,6 +497,6 @@ function TVS.CreateSettingsMenu()
 	})
 
 	-- Registering Panel and Options
-	local controlPanel = LAM:RegisterAddonPanel(panelName, panelData)
+	TVS.settingsPanel = LAM:RegisterAddonPanel(panelName, panelData)
 	LAM:RegisterOptionControls(panelName, options)
 end

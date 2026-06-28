@@ -2,10 +2,12 @@ TelVarSaver = TelVarSaver or {}
 local TVS = TelVarSaver
 
 TVS.name = "Telvar Saver"
-TVS.version = "1.7"
+TVS.version = "1.8"
 TVS.author = "Ehansonn"
 
 TVS.SavedVariablesName = "TVSVars"
+-- NOTE: This is the ZO_SavedVars version. Bumping it WIPES all saved settings,
+-- so it intentionally stays put; upgrades are handled by TVS.HandleMigration().
 TVS.SVVersion = "1.7"
 
 -- Known campaign IDs (reference-only for dev/debug):
@@ -28,7 +30,10 @@ TVS.defaults = {
 	AutoLootTelvar = false,
 	AutoLootKeyFrags = true,
 	notifications = true,
-	dragable = true,
+	notifyBank = false,
+	notifyAutoLeave = false,
+	notifyQueue = false,
+	draggable = true,
 	locationx = 275,
 	locationy = 150,
 	BankScene = true,
@@ -43,6 +48,10 @@ TVS.defaults = {
 	DisableKeybindInPVE = true,
 	SmartQueuePicker = false,
 	AllowCyrodiilCampaigns = false,
+	AutoLeaveToggleShow = false,
+	AutoLeaveToggleDragable = false,
+	AutoLeaveToggleX = -250,
+	AutoLeaveToggleY = 250,
 }
 
 -- Telvar Icon
@@ -105,12 +114,29 @@ function TVS.onLoad(eventCode, addonName)
 
 	-- Creating keybinds
 	ZO_CreateStringId("SI_BINDING_NAME_QUEUETVSCAMP", "Queue into your selected campaign")
+	ZO_CreateStringId("SI_BINDING_NAME_TVSTOGGLEAUTOLEAVE", "Toggle auto leave when telvar limit reached")
 	SLASH_COMMANDS["/tvs"] = TVS.queueCamp
 	SLASH_COMMANDS["/tvsdb"] = TVS.DebugStuff
 
 	-- Update Bank Scene UI
 	TVS.UpdateAnchors()
 	TVS.UpdateText()
+	TVS.SetupBankCheckButtons()
+	TVS.UpdateBankControls()
+
+	-- On-screen Auto-Leave toggle button (only visible while in Imperial City)
+	TVS.SetupAutoLeaveToggle()
+	EVENT_MANAGER:RegisterForEvent(
+		TVS.name .. "_AutoLeaveToggleVis",
+		EVENT_PLAYER_ACTIVATED,
+		TVS.RefreshAutoLeaveToggleVisibility
+	)
+	-- Refresh the button color as carried telvar crosses the queue limit
+	EVENT_MANAGER:RegisterForEvent(
+		TVS.name .. "_AutoLeaveToggleTelvar",
+		EVENT_TELVAR_STONE_UPDATE,
+		TVS.UpdateAutoLeaveToggleVisual
+	)
 
 	-- Auto loot imperial fragments
 	EVENT_MANAGER:RegisterForEvent(TVS.name, EVENT_LOOT_UPDATED, TVS.OnLootUpdated)
@@ -143,7 +169,7 @@ end
 -- Autoloot stuff
 -- -------------------------------------------------------------------------------
 
--- Checking if we looted a imperial fragments. Thanks smarter auto loot
+-- Checking if we looted imperial fragments. Thanks smarter auto loot
 function TVS.OnLootUpdated()
 	local name, interactType, actionName, owned = GetLootTargetInfo()
 	if IsInImperialCity() == false then return end
@@ -202,18 +228,18 @@ function TVS.DepositTelvar()
 	if (currentTelvarOnChar > TVS.SV.DesiredTelvarAmount) and (TVS.SV.AutoDepoTelvar == true) then
 		local amount = currentTelvarOnChar - TVS.SV.DesiredTelvarAmount
 		DepositCurrencyIntoBank(CURT_TELVAR_STONES, amount)
-		TVS.dtvs("auto deposited " .. "|c8080ff" .. tostring(amount) .. "|r " .. TVS.TELVAR_CHAT_ICON)
+		TVS.dtvs("auto deposited " .. "|c8080ff" .. tostring(amount) .. "|r " .. TVS.TELVAR_CHAT_ICON, "notifyBank")
 		return
 	end
 
 	if (currentTelvarOnChar < TVS.SV.DesiredTelvarAmount) and (TVS.SV.AutoWithdrawTelvar == true) then
 		local amount = TVS.SV.DesiredTelvarAmount - currentTelvarOnChar
 		if currentTelvarStonesInBank < amount then
-			TVS.dtvs("Auto withdraw failed")
+			TVS.dtvs("Auto withdraw failed", "notifyBank")
 			return
 		end
 		WithdrawCurrencyFromBank(CURT_TELVAR_STONES, amount)
-		TVS.dtvs("auto withdrew " .. "|c8080ff" .. tostring(amount) .. "|r " .. TVS.TELVAR_CHAT_ICON)
+		TVS.dtvs("auto withdrew " .. "|c8080ff" .. tostring(amount) .. "|r " .. TVS.TELVAR_CHAT_ICON, "notifyBank")
 		return
 	end
 end
@@ -226,7 +252,7 @@ function TVS.TelvarButton(value)
 	if currentTelvarOnChar > value then
 		local amount = currentTelvarOnChar - value
 		DepositCurrencyIntoBank(CURT_TELVAR_STONES, amount)
-		TVS.dtvs("deposited " .. "|c8080ff" .. tostring(amount) .. "|r " .. TVS.TELVAR_CHAT_ICON)
+		TVS.dtvs("deposited " .. "|c8080ff" .. tostring(amount) .. "|r " .. TVS.TELVAR_CHAT_ICON, "notifyBank")
 		return
 	end
 
@@ -234,12 +260,12 @@ function TVS.TelvarButton(value)
 		local amount = value - currentTelvarOnChar
 
 		if currentTelvarStonesInBank < amount then
-			TVS.dtvs("Not enough telvar to withdraw")
+			TVS.dtvs("Not enough telvar to withdraw", "notifyBank")
 			return
 		end
 		WithdrawCurrencyFromBank(CURT_TELVAR_STONES, amount)
 		TVS.UpdateText()
-		TVS.dtvs("withdrew " .. "|c8080ff" .. tostring(amount) .. "|r " .. TVS.TELVAR_CHAT_ICON)
+		TVS.dtvs("withdrew " .. "|c8080ff" .. tostring(amount) .. "|r " .. TVS.TELVAR_CHAT_ICON, "notifyBank")
 		return
 	end
 end
@@ -380,7 +406,7 @@ end
 function TVS.CanQueueForCampaign(campaignId)
 	if campaignId == nil then return false end
 	if DoesTelVarAmountPreventQueuing() == true then
-		TVS.dtvs("Cannot queue: Tel Var amount prevents queuing for [" .. tostring(GetCampaignName(campaignId)) .. "] with more than " .. tostring(GetTelVarQueueThreshold()) .. " " .. TVS.TELVAR_CHAT_ICON)
+		TVS.dtvs("Cannot queue: Tel Var amount prevents queuing for [" .. tostring(GetCampaignName(campaignId)) .. "] with more than " .. tostring(GetTelVarQueueThreshold()) .. " " .. TVS.TELVAR_CHAT_ICON, "notifyQueue")
 		return false
 	end
 	return true
@@ -405,7 +431,7 @@ function TVS.QueueForCampaignWithEstimate(campaignId, queueAsGroup)
 
 	local name = tostring(GetCampaignName(campaignId))
 	local waitPretty = TVS.GetCampaignQueueWaitPretty(campaignId)
-	TVS.dtvs(string.format("Queued for [%s] (estimated wait %s)", name, waitPretty))
+	TVS.dtvs(string.format("Queued for [%s] (estimated wait %s)", name, waitPretty), "notifyQueue")
 
 	QueueForCampaign(campaignId, queueAsGroup)
 
@@ -496,7 +522,7 @@ function TVS.AutoAccept(eventCode, id, isGroup, state)
 	local groupQueue = TVS.GetGroupQueue()
 
 	if state == CAMPAIGN_QUEUE_REQUEST_STATE_CONFIRMING then
-		TVS.dtvs("Entering campaign [" .. tostring(GetCampaignName(id)) .. "]")
+		TVS.dtvs("Entering campaign [" .. tostring(GetCampaignName(id)) .. "]", "notifyQueue")
 		ConfirmCampaignEntry(id, groupQueue, true)
 	end
 end
@@ -547,7 +573,7 @@ function TVS.AutoKickOfflinePlayers(campaignID)
 			local name = GetUnitName(unitTag)
 			GroupKick(unitTag)
 			count = count + 1
-			TVS.dtvs("Kicking " .. name)
+			TVS.dtvs("Kicking " .. name, "notifyQueue")
 		end
 	end
 
@@ -582,11 +608,22 @@ function TVS.HandleMigration()
 		TVS.SV.EscapeCamp = TVS.defaults.EscapeCamp
 	end
 
+	-- The "dragable" setting was renamed to "draggable"; carry over the old value.
+	if TVS.SV.dragable ~= nil then
+		TVS.SV.draggable = TVS.SV.dragable
+		TVS.SV.dragable = nil
+	end
+
 	TVS.SV.version = TVS.version
 end
 
-function TVS.dtvs(value)
+-- value: the message to print.
+-- category: optional saved-var key (e.g. "notifyBank") for a per-category toggle.
+--           When given, the message is suppressed if that category is disabled.
+--           "notifications" remains the master on/off switch for everything.
+function TVS.dtvs(value, category)
 	if TVS.SV.notifications == false then return end
+	if (category ~= nil) and (TVS.SV[category] == false) then return end
 	if value == nil then return end
 
 	d("|c8080ffTel Var Saver:|r " .. value)
