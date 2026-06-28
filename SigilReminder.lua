@@ -149,9 +149,11 @@ function TVS.OnSigilStoreOpen()
 				local minReserve = TVS.SV.SigilMinAPReserve or 0
 				local maxSpend = TVS.SV.SigilMaxSpendAP or 0
 
-				if (minReserve > 0) and (currentAP < minReserve) then
+				local remainingAP = currentAP - totalCost
+				if (minReserve > 0) and (remainingAP < minReserve) then
 					TVS.dtvs(
-						"Skipped Sigil auto-buy: AP (" .. tostring(currentAP) .. ") is below your minimum (" .. tostring(minReserve) .. ").",
+						"Skipped Sigil auto-buy: purchase would leave " .. tostring(remainingAP)
+							.. " AP, below your minimum (" .. tostring(minReserve) .. ").",
 						"notifySigil"
 					)
 					return
@@ -204,11 +206,17 @@ function TVS.WithdrawSigilsFromBank()
 	local needed = target - TVS.CountSigils()
 	if needed <= 0 then return end
 
-	-- Pre-collect empty backpack slots so each move targets a distinct slot
+	-- Pre-collect destination slots so each move targets a known slot
 	-- (moves are processed asynchronously, so we can't re-query after each one).
-	local emptySlots = {}
+	local destSlots = {}
 	for slot = 0, GetBagSize(BAG_BACKPACK) - 1 do
-		if GetItemName(BAG_BACKPACK, slot) == "" then emptySlots[#emptySlots + 1] = slot end
+		if GetItemId(BAG_BACKPACK, slot) == TVS.SIGIL_ITEM_ID then
+			local stack, maxStack = GetSlotStackSize(BAG_BACKPACK, slot)
+			if maxStack and stack and stack < maxStack then destSlots[#destSlots + 1] = { slot = slot, room = maxStack - stack } end
+		end
+	end
+	for slot = 0, GetBagSize(BAG_BACKPACK) - 1 do
+		if GetItemName(BAG_BACKPACK, slot) == "" then destSlots[#destSlots + 1] = { slot = slot } end
 	end
 
 	local withdrawn = 0
@@ -219,16 +227,22 @@ function TVS.WithdrawSigilsFromBank()
 			if GetItemId(bankBag, slot) == TVS.SIGIL_ITEM_ID then
 				local stack = GetSlotStackSize(bankBag, slot)
 				if stack > 0 then
-					local destSlot = table.remove(emptySlots, 1)
-					if destSlot == nil then
+					local dest = destSlots[1]
+					if dest == nil then
 						TVS.dtvs("Couldn't withdraw all Sigils: backpack is full.", "notifySigil")
 						needed = 0
 						break
 					end
-					local moveQty = math.min(stack, needed)
-					MoveSigilStackToBackpack(bankBag, slot, destSlot, moveQty)
+					local moveQty = math.min(stack, needed, dest.room or stack)
+					MoveSigilStackToBackpack(bankBag, slot, dest.slot, moveQty)
 					needed = needed - moveQty
 					withdrawn = withdrawn + moveQty
+					if dest.room then
+						dest.room = dest.room - moveQty
+						if dest.room <= 0 then table.remove(destSlots, 1) end
+					else
+						table.remove(destSlots, 1)
+					end
 				end
 			end
 		end
