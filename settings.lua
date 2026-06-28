@@ -60,6 +60,16 @@ function TVS.CreateSettingsMenu()
 	})
 
 	table.insert(options, {
+		type = "checkbox",
+		name = "Sigil notifications",
+		tooltip = "Messages when Sigils of Imperial Retreat are auto-purchased at a vendor.",
+		default = TVS.defaults.notifySigil,
+		disabled = function() return TVS.SV.notifications == false end,
+		getFunc = function() return TVS.SV.notifySigil end,
+		setFunc = function(value) TVS.SV.notifySigil = value end,
+	})
+
+	table.insert(options, {
 		type = "header",
 		name = "Time/Life Savers",
 	})
@@ -228,6 +238,193 @@ function TVS.CreateSettingsMenu()
 			TVS.SV.AutoLeaveToggleY = TVS.defaults.AutoLeaveToggleY
 			TVS.UpdateAutoLeaveTogglePosition()
 		end,
+	})
+
+	table.insert(options, {
+		type = "header",
+		name = "Sigil of Imperial Retreat",
+	})
+
+	
+
+	table.insert(options, {
+		type = "description",
+		text = "Shows a brief on-screen reminder to restock Sigils of Imperial Retreat each time you load into Imperial City while low, and can auto-purchase them or withdraw from your bank.",
+	})
+
+	table.insert(options, {
+		type = "description",
+		text = "Tel Var Saver also provides a keybind to quickly use a Sigil of Imperial Retreat from your quickbar",
+	})
+	
+	table.insert(options, {
+		type = "checkbox",
+		name = "Show on-screen reminder",
+		tooltip = "On-screen reminder when you load into IC low on Sigils.",
+		default = TVS.defaults.SigilReminderEnabled,
+		getFunc = function() return TVS.SV.SigilReminderEnabled end,
+		setFunc = function(value) TVS.SV.SigilReminderEnabled = value end,
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Hide reminder in safe zones",
+		tooltip = "Don't show the reminder while in an IC safe zone.",
+		default = TVS.defaults.SigilReminderHideInSafeZone,
+		disabled = function() return TVS.SV.SigilReminderEnabled == false end,
+		getFunc = function() return TVS.SV.SigilReminderHideInSafeZone end,
+		setFunc = function(value)
+			TVS.SV.SigilReminderHideInSafeZone = value
+			if value == true then TVS.SV.SigilReminderHideInNonSafeZone = false end
+		end,
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Hide reminder outside safe zones",
+		tooltip = "Only show the reminder while in an IC safe zone.",
+		default = TVS.defaults.SigilReminderHideInNonSafeZone,
+		disabled = function() return TVS.SV.SigilReminderEnabled == false end,
+		getFunc = function() return TVS.SV.SigilReminderHideInNonSafeZone end,
+		setFunc = function(value)
+			TVS.SV.SigilReminderHideInNonSafeZone = value
+			if value == true then TVS.SV.SigilReminderHideInSafeZone = false end
+		end,
+	})
+
+	table.insert(options, {
+		type = "slider",
+		name = "Remind when Sigils below",
+		tooltip = "Remind when carried Sigils drop below this.",
+		min = 1,
+		max = 20,
+		step = 1,
+		default = TVS.defaults.SigilReminderThreshold,
+		disabled = function() return TVS.SV.SigilReminderEnabled == false end,
+		getFunc = function() return TVS.SV.SigilReminderThreshold end,
+		setFunc = function(value) TVS.SV.SigilReminderThreshold = value end,
+	})
+
+	table.insert(options, {
+		type = "slider",
+		name = "Reminder duration (seconds)",
+		tooltip = "How long the reminder stays before fading.",
+		min = 0,
+		max = 15,
+		step = 1,
+		default = TVS.defaults.SigilReminderDurationS,
+		disabled = function() return TVS.SV.SigilReminderEnabled == false end,
+		getFunc = function() return TVS.SV.SigilReminderDurationS end,
+		setFunc = function(value) TVS.SV.SigilReminderDurationS = value end,
+	})
+
+	table.insert(options, {
+		type = "colorpicker",
+		name = "Reminder color",
+		tooltip = "Text color of the reminder.",
+		default = TVS.defaults.SigilReminderColor,
+		disabled = function() return TVS.SV.SigilReminderEnabled == false end,
+		getFunc = function()
+			local c = TVS.SV.SigilReminderColor
+			return c[1], c[2], c[3], c[4]
+		end,
+		setFunc = function(r, g, b, a) TVS.SV.SigilReminderColor = { r, g, b, a } end,
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Reminder sound",
+		tooltip = "Play a sound when the reminder appears.",
+		default = TVS.defaults.SigilReminderSoundEnabled,
+		disabled = function() return TVS.SV.SigilReminderEnabled == false end,
+		getFunc = function() return TVS.SV.SigilReminderSoundEnabled end,
+		setFunc = function(value) TVS.SV.SigilReminderSoundEnabled = value end,
+	})
+
+	local soundNames, soundKeys = {}, {}
+	for _, choice in ipairs(TVS.SIGIL_SOUND_CHOICES) do
+		table.insert(soundNames, choice.label)
+		table.insert(soundKeys, choice.key)
+	end
+	table.insert(options, {
+		type = "dropdown",
+		name = "Sound",
+		tooltip = "Which sound to play.",
+		choices = soundNames,
+		choicesValues = soundKeys,
+		default = TVS.defaults.SigilReminderSound,
+		disabled = function()
+			return (TVS.SV.SigilReminderEnabled == false) or (TVS.SV.SigilReminderSoundEnabled == false)
+		end,
+		getFunc = function() return TVS.SV.SigilReminderSound end,
+		setFunc = function(value)
+			TVS.SV.SigilReminderSound = value
+			if SOUNDS[value] then PlaySound(SOUNDS[value]) end
+		end,
+	})
+
+	table.insert(options, {
+		type = "button",
+		name = "Preview reminder",
+		tooltip = "Preview the reminder now.",
+		disabled = function() return TVS.SV.SigilReminderEnabled == false end,
+		func = function() TVS.TestSigilReminder() end,
+	})
+
+	table.insert(options, {
+		type = "slider",
+		name = "Desired Sigils to carry",
+		tooltip = "Target Sigils to keep. Used by bank withdraw and auto-purchase.",
+		min = 1,
+		max = 100,
+		step = 1,
+		default = TVS.defaults.SigilDesiredAmount,
+		getFunc = function() return TVS.SV.SigilDesiredAmount end,
+		setFunc = function(value) TVS.SV.SigilDesiredAmount = value end,
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Withdraw from bank when opening bank",
+		tooltip = "On bank open, withdraw Sigils to reach your target.",
+		default = TVS.defaults.SigilBankWithdraw,
+		getFunc = function() return TVS.SV.SigilBankWithdraw end,
+		setFunc = function(value) TVS.SV.SigilBankWithdraw = value end,
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Auto-purchase at vendor",
+		tooltip = "At a Sigil vendor, buy enough to reach your target.",
+		default = TVS.defaults.SigilAutoBuyEnabled,
+		getFunc = function() return TVS.SV.SigilAutoBuyEnabled end,
+		setFunc = function(value) TVS.SV.SigilAutoBuyEnabled = value end,
+	})
+
+	table.insert(options, {
+		type = "slider",
+		name = "Max AP to spend per purchase (0 = no cap)",
+		tooltip = "Skip the purchase if it costs more than this. 0 = no cap.",
+		min = 0,
+		max = 100000,
+		step = 1000,
+		default = TVS.defaults.SigilMaxSpendAP,
+		disabled = function() return TVS.SV.SigilAutoBuyEnabled == false end,
+		getFunc = function() return TVS.SV.SigilMaxSpendAP end,
+		setFunc = function(value) TVS.SV.SigilMaxSpendAP = value end,
+	})
+
+	table.insert(options, {
+		type = "slider",
+		name = "Don't buy if AP below (0 = ignore)",
+		tooltip = "Don't buy if your AP is under this. 0 = ignore.",
+		min = 0,
+		max = 100000,
+		step = 1000,
+		default = TVS.defaults.SigilMinAPReserve,
+		disabled = function() return TVS.SV.SigilAutoBuyEnabled == false end,
+		getFunc = function() return TVS.SV.SigilMinAPReserve end,
+		setFunc = function(value) TVS.SV.SigilMinAPReserve = value end,
 	})
 
 	table.insert(options, {
@@ -490,6 +687,25 @@ function TVS.CreateSettingsMenu()
 					TVS.SV.AutoLeaveToggleDragable = TVS.defaults.AutoLeaveToggleDragable
 					TVS.SV.AutoLeaveToggleX = TVS.defaults.AutoLeaveToggleX
 					TVS.SV.AutoLeaveToggleY = TVS.defaults.AutoLeaveToggleY
+					TVS.SV.SigilReminderEnabled = TVS.defaults.SigilReminderEnabled
+					TVS.SV.SigilReminderHideInSafeZone = TVS.defaults.SigilReminderHideInSafeZone
+					TVS.SV.SigilReminderHideInNonSafeZone = TVS.defaults.SigilReminderHideInNonSafeZone
+					TVS.SV.SigilReminderThreshold = TVS.defaults.SigilReminderThreshold
+					TVS.SV.SigilReminderDurationS = TVS.defaults.SigilReminderDurationS
+					TVS.SV.SigilReminderColor = {
+						TVS.defaults.SigilReminderColor[1],
+						TVS.defaults.SigilReminderColor[2],
+						TVS.defaults.SigilReminderColor[3],
+						TVS.defaults.SigilReminderColor[4],
+					}
+					TVS.SV.SigilReminderSoundEnabled = TVS.defaults.SigilReminderSoundEnabled
+					TVS.SV.SigilReminderSound = TVS.defaults.SigilReminderSound
+					TVS.SV.SigilAutoBuyEnabled = TVS.defaults.SigilAutoBuyEnabled
+					TVS.SV.SigilDesiredAmount = TVS.defaults.SigilDesiredAmount
+					TVS.SV.SigilMaxSpendAP = TVS.defaults.SigilMaxSpendAP
+					TVS.SV.SigilMinAPReserve = TVS.defaults.SigilMinAPReserve
+					TVS.SV.SigilBankWithdraw = TVS.defaults.SigilBankWithdraw
+					TVS.SV.notifySigil = TVS.defaults.notifySigil
 					ReloadUI()
 				end, 100)
 			end)
