@@ -273,7 +273,23 @@ function TVS.CreateSettingsMenu()
 		default = TVS.defaults.SigilReminderHideInSafeZone,
 		disabled = function() return TVS.SV.SigilReminderEnabled == false end,
 		getFunc = function() return TVS.SV.SigilReminderHideInSafeZone end,
-		setFunc = function(value) TVS.SV.SigilReminderHideInSafeZone = value end,
+		setFunc = function(value)
+			TVS.SV.SigilReminderHideInSafeZone = value
+			if value == true then TVS.SV.SigilReminderHideInNonSafeZone = false end
+		end,
+	})
+
+	table.insert(options, {
+		type = "checkbox",
+		name = "Hide reminder outside safe zones",
+		tooltip = "Only show the reminder while in an IC safe zone.",
+		default = TVS.defaults.SigilReminderHideInNonSafeZone,
+		disabled = function() return TVS.SV.SigilReminderEnabled == false end,
+		getFunc = function() return TVS.SV.SigilReminderHideInNonSafeZone end,
+		setFunc = function(value)
+			TVS.SV.SigilReminderHideInNonSafeZone = value
+			if value == true then TVS.SV.SigilReminderHideInSafeZone = false end
+		end,
 	})
 
 	table.insert(options, {
@@ -673,6 +689,7 @@ function TVS.CreateSettingsMenu()
 					TVS.SV.AutoLeaveToggleY = TVS.defaults.AutoLeaveToggleY
 					TVS.SV.SigilReminderEnabled = TVS.defaults.SigilReminderEnabled
 					TVS.SV.SigilReminderHideInSafeZone = TVS.defaults.SigilReminderHideInSafeZone
+					TVS.SV.SigilReminderHideInNonSafeZone = TVS.defaults.SigilReminderHideInNonSafeZone
 					TVS.SV.SigilReminderThreshold = TVS.defaults.SigilReminderThreshold
 					TVS.SV.SigilReminderDurationS = TVS.defaults.SigilReminderDurationS
 					TVS.SV.SigilReminderColor = {

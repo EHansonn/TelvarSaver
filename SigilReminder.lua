@@ -77,7 +77,9 @@ end
 function TVS.ShowSigilReminder()
 	if TVS.SV.SigilReminderEnabled ~= true then return end
 	if IsInImperialCity() ~= true then return end
-	if (TVS.SV.SigilReminderHideInSafeZone == true) and (TVS.InSafeZone() == true) then return end
+	local isInSafeZone = TVS.InSafeZone() == true
+	if (TVS.SV.SigilReminderHideInSafeZone == true) and isInSafeZone then return end
+	if (TVS.SV.SigilReminderHideInNonSafeZone == true) and (isInSafeZone == false) then return end
 	if CENTER_SCREEN_ANNOUNCE == nil then return end
 
 	local count = TVS.CountSigils()

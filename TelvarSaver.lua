@@ -54,6 +54,7 @@ TVS.defaults = {
 	AutoLeaveToggleY = 250,
 	SigilReminderEnabled = true,
 	SigilReminderHideInSafeZone = false,
+	SigilReminderHideInNonSafeZone = false,
 	SigilReminderThreshold = 1,
 	SigilReminderDurationS = 3,
 	SigilReminderColor = { 1, 0.25, 0.25, 1 },
