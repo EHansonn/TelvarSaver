@@ -3,7 +3,7 @@ TelVarSaver = TelVarSaver or {}
 local TVS = TelVarSaver
 -- Creating LAM2 MENU --
 function TVS.CreateSettingsMenu()
-	local panelName = "Telvar Saver"
+	local panelName = "TelVar Saver"
 	local panelData = {
 		type = "panel",
 		name = TVS.name,
@@ -23,7 +23,7 @@ function TVS.CreateSettingsMenu()
 	table.insert(options, {
 		type = "checkbox",
 		name = "Chat notifications (master)",
-		tooltip = "Master switch for all Tel Var Saver chat messages. When off, nothing below is printed.",
+		tooltip = "Master switch for all TelVarSaver chat messages. When off, nothing below is printed.",
 		default = TVS.defaults.notifications,
 		getFunc = function() return TVS.SV.notifications end,
 		setFunc = function(value) TVS.SV.notifications = value end,
@@ -42,7 +42,7 @@ function TVS.CreateSettingsMenu()
 	table.insert(options, {
 		type = "checkbox",
 		name = "Auto-leave notifications",
-		tooltip = "Messages when you toggle 'Auto leave when telvar limit reached' on or off.",
+		tooltip = "Messages when you toggle 'Auto leave when Tel Var limit reached' on or off.",
 		default = TVS.defaults.notifyAutoLeave,
 		disabled = function() return TVS.SV.notifications == false end,
 		getFunc = function() return TVS.SV.notifyAutoLeave end,
@@ -85,9 +85,9 @@ function TVS.CreateSettingsMenu()
 
 	table.insert(options, {
 		type = "checkbox",
-		name = "Auto loot telvar (containers and chests) in IC",
+		name = "Auto loot Tel Var (containers and chests) in IC",
 		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "Determines if the addon will auto loot telvar when opening a loot menu",
+		tooltip = "Determines if the addon will auto loot Tel Var when opening a loot menu",
 		default = TVS.defaults.AutoLootTelvar,
 		getFunc = function() return TVS.SV.AutoLootTelvar end,
 		setFunc = function(value) TVS.SV.AutoLootTelvar = value end,
@@ -110,9 +110,9 @@ function TVS.CreateSettingsMenu()
 
 	table.insert(options, {
 		type = "checkbox",
-		name = "Auto deposit telvar into bank",
+		name = "Auto deposit Tel Var into bank",
 		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "If your current carried telvar exceeds your desired amount, deposit the excess",
+		tooltip = "If your current carried Tel Var exceeds your desired amount, deposit the excess",
 		default = TVS.defaults.AutoDepoTelvar,
 		getFunc = function() return TVS.SV.AutoDepoTelvar end,
 		setFunc = function(value)
@@ -123,9 +123,9 @@ function TVS.CreateSettingsMenu()
 
 	table.insert(options, {
 		type = "checkbox",
-		name = "Auto withdraw telvar from bank",
+		name = "Auto withdraw Tel Var from bank",
 		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "If your current carried telvar is below your desired amount, withdraw the amount to reach it",
+		tooltip = "If your current carried Tel Var is below your desired amount, withdraw the amount to reach it",
 		default = TVS.defaults.AutoWithdrawTelvar,
 		getFunc = function() return TVS.SV.AutoWithdrawTelvar end,
 		setFunc = function(value)
@@ -136,7 +136,7 @@ function TVS.CreateSettingsMenu()
 
 	table.insert(options, {
 		type = "editbox",
-		name = "Desired carried Telvar ",
+		name = "Desired carried Tel Var ",
 		tooltip = "The amount you want to carry (for auto depos and withdraws)",
 		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
 		default = TVS.defaults.DesiredTelvarAmount,
@@ -192,14 +192,14 @@ function TVS.CreateSettingsMenu()
 
 	table.insert(options, {
 		type = "description",
-		text = "Toggles 'Auto leave when telvar limit reached' on/off without opening this menu. It shows your telvar limit in green when on, red when off.",
+		text = "Toggles 'Auto leave when Tel Var limit reached' on/off without opening this menu. It shows your Tel Var limit in green when on, red when off. Yellow if you have too much Tel Var",
 	})
 
 	
 	table.insert(options, {
 		type = "checkbox",
 		name = "Show button",
-		tooltip = "Shows a small draggable icon that toggles 'Auto leave when telvar limit reached' on/off without opening this menu.",
+		tooltip = "Shows a small draggable icon that toggles 'Auto leave when Tel Var limit reached' on/off without opening this menu.",
 		default = TVS.defaults.AutoLeaveToggleShow,
 		getFunc = function() return TVS.SV.AutoLeaveToggleShow end,
 		setFunc = function(value)
@@ -284,7 +284,7 @@ function TVS.CreateSettingsMenu()
 		type = "dropdown",
 		name = "Home Campaign",
 		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "Your primary IC campaign. If your current campaign is not home, TelvarSaver will queue this one first.",
+		tooltip = "Your primary IC campaign. If your current campaign is not home, TelVarSaver will queue this one first.",
 		choices = icChoices,
 		choicesValues = icChoiceValues,
 		default = TVS.defaults.ICCamp,
@@ -344,9 +344,9 @@ function TVS.CreateSettingsMenu()
 
 	table.insert(options, {
 		type = "checkbox",
-		name = "Auto leave when telvar limit reached",
+		name = "Auto leave when Tel Var limit reached",
 		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
-		tooltip = "Only triggers if you gain telvar, and the limit exceeds the set amount below. Won't trigger if you withdraw from your bank or something so be careful",
+		tooltip = "Only triggers if you gain Tel Var, and the limit exceeds the set amount below. Won't trigger if you withdraw from your bank or something so be careful",
 		default = TVS.defaults.AutoQueueOut,
 		getFunc = function() return TVS.SV.AutoQueueOut end,
 		setFunc = function(value)
@@ -357,8 +357,8 @@ function TVS.CreateSettingsMenu()
 
 	table.insert(options, {
 		type = "editbox",
-		name = "Telvar limit (max " .. tostring(GetTelVarQueueThreshold()) .. ")",
-		tooltip = "If you kill a mob or player and your telvar gained exceeds this int, you will queue out",
+		name = "Tel Var limit (max " .. tostring(GetTelVarQueueThreshold()) .. ")",
+		tooltip = "If you kill a mob or player and your Tel Var gained exceeds this int, you will queue out",
 		textType = TEXT_TYPE_NUMERIC_UNSIGNED_INT,
 		default = TVS.defaults.TelvarCap,
 		getFunc = function() return TVS.SV.TelvarCap end,

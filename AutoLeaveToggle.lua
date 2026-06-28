@@ -76,9 +76,9 @@ function TVS.ToggleAutoLeave()
 	TVS.SV.AutoQueueOut = not TVS.SV.AutoQueueOut
 	TVS.UpdateAutoLeaveToggleVisual()
 	if TVS.SV.AutoQueueOut == true then
-		TVS.dtvs("Auto leave when telvar limit reached: |c00ff00ON|r", "notifyAutoLeave")
+		TVS.dtvs("Auto leave when Tel Var limit reached: |c00ff00ON|r", "notifyAutoLeave")
 	else
-		TVS.dtvs("Auto leave when telvar limit reached: |cff4040OFF|r", "notifyAutoLeave")
+		TVS.dtvs("Auto leave when Tel Var limit reached: |cff4040OFF|r", "notifyAutoLeave")
 	end
 end
 
@@ -116,8 +116,8 @@ end
 
 function TVS.OnAutoLeaveToggleEnter()
 	InitializeTooltip(InformationTooltip, TVSAutoLeaveToggle, BOTTOM, 0, -5)
-	SetTooltipText(InformationTooltip, "Tel Var Saver")
-	SetTooltipText(InformationTooltip, "Left click to toggle 'Auto leave when telvar limit reached'.")
+	SetTooltipText(InformationTooltip, "TelVarSaver")
+	SetTooltipText(InformationTooltip, "Left click to toggle 'Auto leave when Tel Var limit reached'.")
 	SetTooltipText(InformationTooltip, "Right click to open settings.")
 	SetTooltipText(InformationTooltip, "Unlock drag to move in settings. Lock or hide it in the addon settings.")
 end

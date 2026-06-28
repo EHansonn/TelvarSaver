@@ -39,13 +39,13 @@ end
 function TVS.SetupBankCheckButtons()
 	if TVSViewAutoDepoToggle == nil then return end
 
-	ZO_CheckButton_SetLabelText(TVSViewAutoDepoToggle, "Auto deposit telvar")
+	ZO_CheckButton_SetLabelText(TVSViewAutoDepoToggle, "Auto deposit Tel Var")
 	ZO_CheckButton_SetToggleFunction(TVSViewAutoDepoToggle, function(_, checked)
 		TVS.SV.AutoDepoTelvar = checked
 		TVS.UpdateBankControls()
 	end)
 
-	ZO_CheckButton_SetLabelText(TVSViewAutoWithdrawToggle, "Auto withdraw telvar")
+	ZO_CheckButton_SetLabelText(TVSViewAutoWithdrawToggle, "Auto withdraw Tel Var")
 	ZO_CheckButton_SetToggleFunction(TVSViewAutoWithdrawToggle, function(_, checked)
 		TVS.SV.AutoWithdrawTelvar = checked
 		TVS.UpdateBankControls()

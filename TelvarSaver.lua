@@ -1,7 +1,7 @@
 TelVarSaver = TelVarSaver or {}
 local TVS = TelVarSaver
 
-TVS.name = "Telvar Saver"
+TVS.name = "TelVar Saver"
 TVS.version = "1.8"
 TVS.author = "Ehansonn"
 
@@ -32,7 +32,7 @@ TVS.defaults = {
 	notifications = true,
 	notifyBank = false,
 	notifyAutoLeave = false,
-	notifyQueue = false,
+	notifyQueue = true,
 	draggable = true,
 	locationx = 275,
 	locationy = 150,
@@ -114,7 +114,7 @@ function TVS.onLoad(eventCode, addonName)
 
 	-- Creating keybinds
 	ZO_CreateStringId("SI_BINDING_NAME_QUEUETVSCAMP", "Queue into your selected campaign")
-	ZO_CreateStringId("SI_BINDING_NAME_TVSTOGGLEAUTOLEAVE", "Toggle auto leave when telvar limit reached")
+	ZO_CreateStringId("SI_BINDING_NAME_TVSTOGGLEAUTOLEAVE", "Toggle auto leave when Tel Var limit reached")
 	SLASH_COMMANDS["/tvs"] = TVS.queueCamp
 	SLASH_COMMANDS["/tvsdb"] = TVS.DebugStuff
 
@@ -260,7 +260,7 @@ function TVS.TelvarButton(value)
 		local amount = value - currentTelvarOnChar
 
 		if currentTelvarStonesInBank < amount then
-			TVS.dtvs("Not enough telvar to withdraw", "notifyBank")
+			TVS.dtvs("Not enough Tel Var to withdraw", "notifyBank")
 			return
 		end
 		WithdrawCurrencyFromBank(CURT_TELVAR_STONES, amount)
@@ -626,7 +626,7 @@ function TVS.dtvs(value, category)
 	if (category ~= nil) and (TVS.SV[category] == false) then return end
 	if value == nil then return end
 
-	d("|c8080ffTel Var Saver:|r " .. value)
+	d("|c8080ffTelVarSaver:|r " .. value)
 end
 
 function TVS.DebugLogSelectionCampaigns()
